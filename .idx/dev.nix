@@ -5,11 +5,13 @@
   channel = "stable-24.05"; # or "unstable"
   # Use https://search.nixos.org/packages to find packages
   packages = [
-    # pkgs.go
-    # pkgs.python311
-    # pkgs.python311Packages.pip
-    # pkgs.nodejs_20
-    # pkgs.nodePackages.nodemon
+    pkgs.python312Full                               # ✅ THÊM: Python runtime chính
+    pkgs.python312Packages.pip                   # ✅ GIỮ NGUYÊN: pip
+    pkgs.python312Packages.setuptools            # ✅ THÊM: hỗ trợ setup.py
+    pkgs.python312Packages.fastapi               # ✅ THÊM: web framework
+    pkgs.python312Packages.uvicorn               # ✅ THÊM: server cho FastAPI
+    pkgs.python312Packages.openai                # ✅ THÊM: gọi OpenAI API
+    pkgs.python312Packages.python-dotenv         # ✅ THÊM: đọc .env file
   ];
   # Sets environment variables in the workspace
   env = {};
