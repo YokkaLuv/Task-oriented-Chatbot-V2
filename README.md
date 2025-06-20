@@ -1,3 +1,4 @@
-Get started by customizing your environment (defined in the .idx/dev.nix file) with the tools and IDE extensions you'll need for your project!
+## About the project
+This is a basic task-oriented chatbot using OpenAI API
 
-Learn more at https://developers.google.com/idx/guides/customize-idx-env
+- Task and style can be modified easily through system_prompt
