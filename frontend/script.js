@@ -2,26 +2,30 @@ const chatBox = document.getElementById("chat-box");
 const inputField = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 
-let chatHistory = [];  // [{ role: "user" | "assistant", content: "..." }]
-let collectedData = {};  // Lưu yêu cầu thiết kế theo từng bước
+let chatHistory = [];
+let collectedData = {};
+
+inputField.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    sendButton.click();
+  }
+});
 
 sendButton.addEventListener("click", async () => {
   const userMessage = inputField.value.trim();
   if (!userMessage) return;
 
-  // Hiển thị tin nhắn người dùng
   appendMessage("user", userMessage);
   chatHistory.push({ role: "user", content: userMessage });
   inputField.value = "";
 
-  // Gọi API backend
   const response = await fetch("http://localhost:8000/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       message: userMessage,
       history: chatHistory,
-      design_data: collectedData  // Gửi nếu có đủ dữ liệu
+      design_data: collectedData
     })
   });
 
@@ -33,6 +37,12 @@ sendButton.addEventListener("click", async () => {
   if (data.image_url) {
     appendImage(data.image_url);
   }
+});
+
+window.addEventListener("load", () => {
+  const welcome = "Xin chào quý khách! Tôi là trợ lý thiết kế ảo thông minh. Hôm nay quý khách muốn tạo thiết kế gì?";
+  appendMessage("assistant", welcome);
+  chatHistory.push({ role: "assistant", content: welcome });
 });
 
 function appendMessage(role, text) {
