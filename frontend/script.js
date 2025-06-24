@@ -7,7 +7,6 @@ let collectedData = {};
 let userMessageCount = 0;
 
 let conceptButtonGroup = null;
-let conceptButtonShown = false; 
 
 inputField.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
@@ -34,40 +33,26 @@ sendButton.addEventListener("click", async () => {
     })
   });
 
-  if (userMessageCount >= 7 && !conceptButtonShown) {
-    conceptButtonShown = true;
-    const data = await response.json();
-    const assistantReply = data.reply;
-    chatHistory.push({ role: "assistant", content: assistantReply });
-    appendMessage("assistant", assistantReply);
+  const data = await response.json();
+  const assistantReply = data.reply;
+  chatHistory.push({ role: "assistant", content: assistantReply });
+  appendMessage("assistant", assistantReply);
 
-    if (data.image_url) {
-      appendImage(data.image_url);
-    }
-    showGenerateConceptButton();
-    chatHistory.push({ role: "assistant", content: hint });
-  } 
-  else {
-    const data = await response.json();
-    const assistantReply = data.reply;
-    chatHistory.push({ role: "assistant", content: assistantReply });
-    appendMessage("assistant", assistantReply);
+  if (userMessageCount >= 7) {
+    insertConceptButtonBelowLastMessage();
+  }
 
-    if (data.image_url) {
-      appendImage(data.image_url);
-    }
+  if (data.image_url) {
+    appendImage(data.image_url);
   }
 });
 
-function showGenerateConceptButton() {
-  const existing = document.getElementById("generate-concept-btn");
-  if (existing) return;
-
+function insertConceptButtonBelowLastMessage() {
   const btn = document.createElement("button");
-  btn.id = "generate-concept-btn";
-  btn.textContent = "✨ Tạo concept";
+  btn.textContent = "✨ Xây dựng ý tưởng ✨";
   btn.className = "concept-btn";
-  btn.style.marginTop = "10px";
+  btn.style.margin = "10px 0";
+
   btn.addEventListener("click", async () => {
     const transcript = chatHistory.map(m => `${m.role}: ${m.content}`).join("\n");
 
@@ -100,9 +85,19 @@ function showConceptButtons(concepts) {
     btn.textContent = conceptText;
     btn.className = "concept-choice-btn";
     btn.style.margin = "5px 0";
+
     btn.addEventListener("click", async () => {
-      appendMessage("user", `Chọn concept ${index + 1}`);
-      chatHistory.push({ role: "user", content: `Chọn concept ${index + 1}` });
+      btn.classList.add("selected-concept");
+
+      const allBtns = conceptButtonGroup.querySelectorAll("button");
+      allBtns.forEach(b => {
+        b.disabled = true;
+        b.style.cursor = "not-allowed";
+        b.style.opacity = "0.6";
+      });
+
+      appendMessage("user", `Tôi chọn ý tưởng ${index + 1}`);
+      chatHistory.push({ role: "user", content: `Tôi chọn ý tưởng ${index + 1}` });
 
       const response = await fetch("http://localhost:8000/chat", {
         method: "POST",
@@ -115,7 +110,7 @@ function showConceptButtons(concepts) {
 
       const data = await response.json();
       if (data.image_url) {
-        appendMessage("assistant", "Đây là hình ảnh demo của concept mà quý khách đã chọn");
+        appendMessage("assistant", "Đây là hình ảnh demo về ý tưởng mà quý khách đã chọn, cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi.");
         appendImage(data.image_url);
       }
     });

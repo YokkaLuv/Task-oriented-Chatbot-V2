@@ -35,7 +35,7 @@ Each concept should be:
 - Unique in theme and visual direction
 - Based on the client's preferences and use-case
 
-Respond only with the 3 concepts as plain text. Number them like "Concept 1: ...", "Concept 2: ...", etc.
+Respond only with the 3 concepts as plain text. Number them like "Ý tưởng 1: ...", "Ý tưởng 2: ...", etc.
 """
     }
 
@@ -54,6 +54,5 @@ def build_dalle_prompt(concept: str) -> str:
 Generate a creative visual design based on the following concept:
 "{concept}"
 
-The image should reflect the described theme, style, and color direction.
-Avoid any text in the image. Return only a single visual illustration.
+The image should reflect the described theme, style, and color direction. Return 3 visual illustrations.
 """.strip()
