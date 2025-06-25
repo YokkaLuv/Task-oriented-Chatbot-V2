@@ -7,10 +7,7 @@ let collectedData = {};
 let userMessageCount = 0;
 let conceptButtonGroup = null;
 
-const BASE_URL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:8000"
-    : window.location.origin.replace("5500", "8000");
+const BASE_URL = window.location.origin;
 
 inputField.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
