@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/", StaticFiles(directory="/home/user/chatbot/frontend", html=True), name="frontend")
+app.mount("/", StaticFiles(directory=os.getenv("FRONT_END"), html=True), name="frontend")
 
 @app.get("/")
 def root():
