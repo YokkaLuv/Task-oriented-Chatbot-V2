@@ -5,8 +5,12 @@ const sendButton = document.getElementById("send-button");
 let chatHistory = [];
 let collectedData = {};
 let userMessageCount = 0;
-
 let conceptButtonGroup = null;
+
+const BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:8000"
+    : window.location.origin.replace("5500", "8000");
 
 inputField.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
@@ -23,7 +27,7 @@ sendButton.addEventListener("click", async () => {
   chatHistory.push({ role: "user", content: userMessage });
   inputField.value = "";
 
-  const response = await fetch("http://localhost:8000/chat", {
+  const response = await fetch(`${BASE_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -56,7 +60,7 @@ function insertConceptButtonBelowLastMessage() {
   btn.addEventListener("click", async () => {
     const transcript = chatHistory.map(m => `${m.role}: ${m.content}`).join("\n");
 
-    const response = await fetch("http://localhost:8000/chat", {
+    const response = await fetch(`${BASE_URL}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -99,7 +103,7 @@ function showConceptButtons(concepts) {
       appendMessage("user", `Tôi chọn ý tưởng ${index + 1}`);
       chatHistory.push({ role: "user", content: `Tôi chọn ý tưởng ${index + 1}` });
 
-      const response = await fetch("http://localhost:8000/chat", {
+      const response = await fetch(`${BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
