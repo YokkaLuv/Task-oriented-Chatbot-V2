@@ -35,10 +35,13 @@ REQUIRED_KEYS = [
     "colors", "style", "contact_information"
 ]
 
-def check_enough_info(state: ChatState) -> str:
+def route_after_collect(state: ChatState) -> str:
     data = state.get("design_data", {})
     filled_keys = [key for key in REQUIRED_KEYS if data.get(key)]
-    return "ready_for_concept" if len(filled_keys) >= len(REQUIRED_KEYS) else "wait"
+    if len(filled_keys) >= len(REQUIRED_KEYS):
+        return "suggest_concepts"
+    else:
+        return "wait_for_more_info"
 
 def suggest_concepts(state: ChatState) -> ChatState:
     transcript = "\n".join(f"{m['role']}: {m['content']}" for m in state.get("history", []))
@@ -57,20 +60,18 @@ def build_graph():
     graph = StateGraph(ChatState)
 
     graph.add_node("collect", collect_message)
-    graph.add_node("check", check_enough_info)
+    graph.add_node("suggest_concepts", suggest_concepts)
+    graph.add_node("wait_for_more_info", wait_for_more_info)
     graph.add_node("generate", generate_image)
 
-    graph.add_node(suggest_concepts)
-    graph.add_node(wait_for_more_info)
-
     graph.set_entry_point("collect")
-    graph.add_edge("collect", "check")
 
     graph.add_conditional_edges(
-        "check",
+        "collect",
+        route_after_collect,
         {
-            "ready_for_concept": suggest_concepts,
-            "wait": wait_for_more_info
+            "suggest_concepts": "suggest_concepts",
+            "wait_for_more_info": "wait_for_more_info"
         }
     )
 
@@ -79,4 +80,3 @@ def build_graph():
     graph.add_edge("generate", END)
 
     return graph.compile()
-
