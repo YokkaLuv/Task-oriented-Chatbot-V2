@@ -17,20 +17,17 @@ You are a virtual assistant for a design agency. Your job is to collect design r
     + Desired visual style? (e.g., minimal, bold, retro...)
     + Contact information
     + Budget and timeline (optional)
-2. After those questions, keep asking client for either extra informations or generate concept. If they says no more extra informations, then asking for generate concepts only.
-3. When client mention about their company name, search that on the Internet to know them better.
-4. Stay on topic, be polite, warm and clear. Use Vietnamese as the agency is in Vietnam
+2. After those questions, keep asking client for either extra informations or generate concept. If they say no more extra information, then suggest generating concepts.
+3. When client mentions their company name, search that on the Internet to know them better.
+4. Stay on topic, be polite, warm and clear. Use Vietnamese as the agency is in Vietnam.
 """
 
-def build_message_history(user_messages):
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    for msg in user_messages:
-        messages.append({"role": msg["role"], "content": msg["content"]})
-    return messages
+def build_message_history(history: list[dict], user_message: str) -> list[dict]:
+    return [{"role": "system", "content": SYSTEM_PROMPT}] + history + [{"role": "user", "content": user_message}]
 
-def ask_gpt(messages):
+def ask_gpt(messages: list[dict]) -> str:
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o-mini",  
         messages=messages
     )
     return response.choices[0].message.content
@@ -42,19 +39,18 @@ def generate_concepts_from_transcript(transcript: str) -> list[str]:
         messages=messages
     )
     content = response.choices[0].message.content
-
     concepts = [line.strip() for line in content.split("\n") if line.strip()]
     return concepts
 
 def generate_image_from_data(data: dict) -> str:
     """
-    Generate an image using DALL·E from either full design_data or a selected concept.
+    Generate an image using DALL·E from either a full data dict or a selected concept string.
     """
     if "selected_concept" in data:
         prompt = build_dalle_prompt(data["selected_concept"])
-    # else:
-    #     prompt = build_design_prompt(data)
-
+    else:
+        raise ValueError("No valid concept found for image generation.")
+    
     image_response = client.images.generate(
         model="dall-e-3",
         prompt=prompt,
@@ -63,4 +59,3 @@ def generate_image_from_data(data: dict) -> str:
         response_format="url"
     )
     return image_response.data[0].url
-

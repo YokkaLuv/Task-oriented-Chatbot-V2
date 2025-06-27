@@ -1,30 +1,11 @@
-# def build_design_prompt(data: dict) -> str:
-#     """
-#     Build a prompt string for GPT or DALL·E based on structured user data.
-#     Expected keys: business, product, audience, colors, style, budget, timeline, company_name (optional)
-#     """
-#     prompt = f"""
-# Create a creative visual design concept based on the following details:
-
-# - Business or Individual: {data.get('business', 'N/A')}
-# - Company/Product/Service: {data.get('product', 'N/A')}
-# - Target Audience: {data.get('audience', 'N/A')}
-# - Color Preferences: {data.get('colors', 'N/A')}
-# - Visual Style: {data.get('style', 'N/A')}
-# - Budget: {data.get('budget', 'N/A')}
-# - Timeline: {data.get('timeline', 'N/A')}
-# - Company Name (if any): {data.get('company_name', 'N/A')}
-
-# The output should be a short, visually inspiring design direction or concept idea suitable for quick illustration or image generation.
-#     """
-#     return prompt.strip()
-
-def build_concept_generation_prompt(transcript: str) -> list:
+def build_concept_generation_prompt(transcript: str) -> list[dict]:
     """
     Tạo prompt cho GPT để sinh 3 concept thiết kế dựa trên đoạn hội thoại giữa khách hàng và AI.
-    Trả về danh sách message để dùng trong Chat API.
+    Trả về danh sách message để dùng trực tiếp với OpenAI Chat API.
+
+    transcript: đoạn hội thoại định dạng text (role: message)
     """
-    system = {
+    system_msg = {
         "role": "system",
         "content": """
 You are a creative brand designer. Your job is to create 3 distinct design concepts for a client based on their requirements.
@@ -36,23 +17,26 @@ Each concept should be:
 - Based on the client's preferences and use-case
 
 Respond only with the 3 concepts as plain text. Number them like "Ý tưởng 1: ...", "Ý tưởng 2: ...", etc.
-"""
+""".strip()
     }
 
-    user = {
+    user_msg = {
         "role": "user",
         "content": f"Conversation:\n{transcript}"
     }
 
-    return [system, user]
+    return [system_msg, user_msg]
+
 
 def build_dalle_prompt(concept: str) -> str:
     """
-    Build a visual prompt for DALL·E based on a selected concept string.
+    Sinh prompt cho DALL·E từ concept văn bản được chọn.
+    
+    concept: văn bản mô tả concept thiết kế do GPT đề xuất.
     """
     return f"""
 Generate a creative visual design based on the following concept:
 "{concept}"
 
-The image should reflect the described theme, style, and color direction. Return 3 visual illustrations.
+The image should reflect the described theme, style, and color direction.
 """.strip()

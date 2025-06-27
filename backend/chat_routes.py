@@ -1,33 +1,35 @@
 from fastapi import APIRouter, Request
-from services.openai_service import build_message_history, ask_gpt, generate_image_from_data, generate_concepts_from_transcript
+from workflows.langgraph_app import build_graph
 
 router = APIRouter()
+chatbot = build_graph()
 
 @router.post("/chat")
 async def chat_endpoint(request: Request):
     body = await request.json()
 
-    if body.get("generate_concepts"):
-        transcript = body.get("transcript", "")
-        concepts = generate_concepts_from_transcript(transcript)
-        return { "concepts": concepts }
-
     if body.get("generate_image"):
         concept = body.get("concept", "")
-        try:
-            image_url = generate_image_from_data({ "selected_concept": concept })
-            return { "image_url": image_url }
-        except Exception as e:
-            return { "error": f"Image generation failed: {e}" }
+        result = chatbot.invoke({
+            "selected_concept": concept,
+        })
+        return {
+            "image_url": result.get("image_url"),
+            "reply": "Đây là hình ảnh demo về ý tưởng mà quý khách đã chọn, cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi."
+        }
 
     message = body.get("message", "")
     history = body.get("history", [])
     design_data = body.get("design_data", {})
 
-    messages = build_message_history(history + [{"role": "user", "content": message}])
-    reply = ask_gpt(messages)
+    result = chatbot.invoke({
+        "message": message,
+        "history": history,
+        "design_data": design_data
+    })
 
     return {
-        "reply": reply,
-        "image_url": None  
+        "reply": result.get("reply", ""),
+        "image_url": result.get("image_url"),
+        "concepts": result.get("concepts", None)
     }
