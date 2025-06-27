@@ -3,8 +3,10 @@ from typing import TypedDict, Optional
 from services.openai_service import (
     ask_gpt,
     generate_concepts_from_transcript,
-    generate_image_from_data
+    generate_image_from_data,
+    extract_design_data_from_history,
 )
+from services.prompt_builder import extract_selected_concept_index
 
 class ChatState(TypedDict, total=False):
     message: str
@@ -18,16 +20,21 @@ class ChatState(TypedDict, total=False):
 def collect_message(state: ChatState) -> ChatState:
     message = state["message"]
     history = state.get("history", [])
-    
+
     reply = ask_gpt(history + [{"role": "user", "content": message}])
-    
-    history.append({"role": "user", "content": message})
-    history.append({"role": "assistant", "content": reply})
-    
+
+    updated_history = history + [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": reply}
+    ]
+
+    extracted_data = extract_design_data_from_history(updated_history)
+
     return {
         **state,
         "reply": reply,
-        "history": history
+        "history": updated_history,
+        "design_data": extracted_data
     }
 
 REQUIRED_KEYS = [
@@ -38,15 +45,24 @@ REQUIRED_KEYS = [
 def route_after_collect(state: ChatState) -> str:
     data = state.get("design_data", {})
     filled_keys = [key for key in REQUIRED_KEYS if data.get(key)]
-    if len(filled_keys) >= len(REQUIRED_KEYS):
-        return "suggest_concepts"
-    else:
-        return "wait_for_more_info"
+    return "suggest_concepts" if len(filled_keys) >= len(REQUIRED_KEYS) else "wait_for_more_info"
 
 def suggest_concepts(state: ChatState) -> ChatState:
     transcript = "\n".join(f"{m['role']}: {m['content']}" for m in state.get("history", []))
     concepts = generate_concepts_from_transcript(transcript)
     return {**state, "concepts": concepts}
+
+def route_after_suggestion(state: ChatState) -> str:
+    message = state.get("message", "")
+    concepts = state.get("concepts", [])
+    
+    index = extract_selected_concept_index(message, concepts)
+
+    if index is not None:
+        state["selected_concept"] = concepts[index]
+        return "generate"
+    
+    return "suggest_concepts"
 
 def wait_for_more_info(state: ChatState) -> ChatState:
     return state
@@ -75,7 +91,15 @@ def build_graph():
         }
     )
 
-    graph.add_edge("suggest_concepts", END)
+    graph.add_conditional_edges(
+        "suggest_concepts",
+        route_after_suggestion,
+        {
+            "generate": "generate",
+            "suggest_concepts": "suggest_concepts"
+        }
+    )
+
     graph.add_edge("wait_for_more_info", END)
     graph.add_edge("generate", END)
 

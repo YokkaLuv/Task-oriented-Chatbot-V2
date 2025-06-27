@@ -1,3 +1,6 @@
+import re
+from typing import Optional
+
 def build_concept_generation_prompt(transcript: str) -> list[dict]:
     """
     Tạo prompt cho GPT để sinh 3 concept thiết kế dựa trên đoạn hội thoại giữa khách hàng và AI.
@@ -40,3 +43,26 @@ Generate a creative visual design based on the following concept:
 
 The image should reflect the described theme, style, and color direction.
 """.strip()
+
+
+def extract_selected_concept_index(message: str, concepts: list[str]) -> Optional[int]:
+    """
+    Phân tích message của người dùng để xác định họ chọn concept số mấy, hoặc concept nào trùng tên.
+
+    Ưu tiên:
+    1. Câu chứa số thứ tự (VD: “Tôi chọn số 2”)
+    2. Tên concept (VD: “Tôi thích concept Bold Clean”)
+    """
+
+    match = re.search(r"(?:số|concept|ý tưởng)?\s*(\d+)", message, re.IGNORECASE)
+    if match:
+        idx = int(match.group(1)) - 1 
+        if 0 <= idx < len(concepts):
+            return idx
+
+    message_lower = message.lower()
+    for i, concept in enumerate(concepts):
+        if concept.lower() in message_lower:
+            return i
+
+    return None

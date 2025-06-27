@@ -22,15 +22,38 @@ You are a virtual assistant for a design agency. Your job is to collect design r
 4. Stay on topic, be polite, warm and clear. Use Vietnamese as the agency is in Vietnam.
 """
 
-def build_message_history(history: list[dict], user_message: str) -> list[dict]:
-    return [{"role": "system", "content": SYSTEM_PROMPT}] + history + [{"role": "user", "content": user_message}]
-
-def ask_gpt(messages: list[dict]) -> str:
+def ask_gpt(history: list[dict]) -> str:
+    full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history
     response = client.chat.completions.create(
-        model="gpt-4o-mini",  
-        messages=messages
+        model="gpt-4o-mini",
+        messages=full_messages
     )
     return response.choices[0].message.content
+
+def extract_design_data_from_history(history: list[dict]) -> dict:
+    instruction = """
+Dựa trên đoạn hội thoại dưới đây giữa trợ lý và khách hàng, hãy trích xuất lại toàn bộ yêu cầu thiết kế nếu có, dưới dạng JSON với các key sau:
+{
+  "business": string | null,
+  "product": string | null,
+  "audience": string | null,
+  "colors": string | null,
+  "style": string | null,
+  "contact_information": string | null
+}
+Chỉ trả về chuỗi JSON duy nhất, không thêm bất kỳ giải thích nào khác.
+"""
+    full_messages = [{"role": "system", "content": instruction}] + history
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=full_messages
+    )
+    content = response.choices[0].message.content
+    try:
+        import json
+        return json.loads(content)
+    except Exception:
+        return {}
 
 def generate_concepts_from_transcript(transcript: str) -> list[str]:
     messages = build_concept_generation_prompt(transcript)
@@ -39,13 +62,9 @@ def generate_concepts_from_transcript(transcript: str) -> list[str]:
         messages=messages
     )
     content = response.choices[0].message.content
-    concepts = [line.strip() for line in content.split("\n") if line.strip()]
-    return concepts
+    return [line.strip() for line in content.split("\n") if line.strip()]
 
 def generate_image_from_data(data: dict) -> str:
-    """
-    Generate an image using DALL·E from either a full data dict or a selected concept string.
-    """
     if "selected_concept" in data:
         prompt = build_dalle_prompt(data["selected_concept"])
     else:

@@ -8,28 +8,24 @@ chatbot = build_graph()
 async def chat_endpoint(request: Request):
     body = await request.json()
 
-    if body.get("generate_image"):
-        concept = body.get("concept", "")
-        result = chatbot.invoke({
-            "selected_concept": concept,
-        })
-        return {
-            "image_url": result.get("image_url"),
-            "reply": "Đây là hình ảnh demo về ý tưởng mà quý khách đã chọn, cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi."
-        }
-
     message = body.get("message", "")
     history = body.get("history", [])
     design_data = body.get("design_data", {})
+    selected_concept = body.get("selected_concept", None)
 
-    result = chatbot.invoke({
+    input_state = {
         "message": message,
         "history": history,
         "design_data": design_data
-    })
+    }
+
+    if selected_concept:
+        input_state["selected_concept"] = selected_concept
+
+    result = chatbot.invoke(input_state)
 
     return {
         "reply": result.get("reply", ""),
-        "image_url": result.get("image_url"),
-        "concepts": result.get("concepts", None)
+        "concepts": result.get("concepts"),
+        "image_url": result.get("image_url")
     }
