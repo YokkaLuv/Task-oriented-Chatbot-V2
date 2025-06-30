@@ -4,7 +4,6 @@ const sendButton = document.getElementById("send-button");
 
 let chatHistory = [];
 let collectedData = {};
-let userMessageCount = 0;
 let conceptButtonGroup = null;
 
 const BASE_URL = window.location.origin;
@@ -19,7 +18,6 @@ sendButton.addEventListener("click", async () => {
   const userMessage = inputField.value.trim();
   if (!userMessage) return;
 
-  userMessageCount++;
   appendMessage("user", userMessage);
   chatHistory.push({ role: "user", content: userMessage });
   inputField.value = "";
@@ -39,41 +37,14 @@ sendButton.addEventListener("click", async () => {
   chatHistory.push({ role: "assistant", content: assistantReply });
   appendMessage("assistant", assistantReply);
 
-  if (userMessageCount >= 7) {
-    insertConceptButtonBelowLastMessage();
-  }
-
   if (data.image_url) {
     appendImage(data.image_url);
   }
+
+  if (data.concepts) {
+    showConceptButtons(data.concepts);
+  }
 });
-
-function insertConceptButtonBelowLastMessage() {
-  const btn = document.createElement("button");
-  btn.textContent = "✨ Xây dựng ý tưởng ✨";
-  btn.className = "concept-btn";
-  btn.style.margin = "10px 0";
-
-  btn.addEventListener("click", async () => {
-    const transcript = chatHistory.map(m => `${m.role}: ${m.content}`).join("\n");
-
-    const response = await fetch(`${BASE_URL}/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        generate_concepts: true,
-        transcript: transcript
-      })
-    });
-
-    const data = await response.json();
-    const concepts = data.concepts;
-    showConceptButtons(concepts);
-  });
-
-  chatBox.appendChild(btn);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
 
 function showConceptButtons(concepts) {
   if (conceptButtonGroup) conceptButtonGroup.remove();
@@ -104,14 +75,16 @@ function showConceptButtons(concepts) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          generate_image: true,
-          concept: conceptText
+          selected_concept: conceptText,
+          message: "",
+          history: chatHistory,
+          design_data: collectedData
         })
       });
 
       const data = await response.json();
       if (data.image_url) {
-        appendMessage("assistant", "Đây là hình ảnh demo về ý tưởng mà quý khách đã chọn, cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi.");
+        appendMessage("assistant", data.reply || "Đây là hình ảnh demo về ý tưởng quý khách đã chọn.");
         appendImage(data.image_url);
       }
     });

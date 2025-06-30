@@ -52,17 +52,31 @@ def extract_selected_concept_index(message: str, concepts: list[str]) -> Optiona
     Ưu tiên:
     1. Câu chứa số thứ tự (VD: “Tôi chọn số 2”)
     2. Tên concept (VD: “Tôi thích concept Bold Clean”)
+    3. Cách nói phổ biến như “tôi thích 1”, “ý 2”, “chọn số 3” v.v.
     """
+    message = message.lower().strip()
 
-    match = re.search(r"(?:số|concept|ý tưởng)?\s*(\d+)", message, re.IGNORECASE)
+    # ✅ Regex: "ý tưởng", "concept", "số", "ý", v.v.
+    match = re.search(r"(?:ý\s*tưởng|concept|số|ý)?\s*(\d+)", message)
     if match:
-        idx = int(match.group(1)) - 1 
+        idx = int(match.group(1)) - 1
         if 0 <= idx < len(concepts):
             return idx
 
-    message_lower = message.lower()
+    # ✅ Một số cụm từ thường gặp không cần regex
+    for i in range(len(concepts)):
+        if (
+            f"chọn {i+1}" in message
+            or f"tôi chọn {i+1}" in message
+            or f"mình chọn {i+1}" in message
+            or f"ý {i+1}" in message
+            or f"thích {i+1}" in message
+        ):
+            return i
+
+    # ✅ Nếu tên concept có trong message
     for i, concept in enumerate(concepts):
-        if concept.lower() in message_lower:
+        if concept.lower() in message:
             return i
 
     return None
