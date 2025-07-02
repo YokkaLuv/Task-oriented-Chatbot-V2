@@ -1,17 +1,30 @@
-# intent_priority.py
+from enum import Enum
 
+# Định nghĩa Enum cho intent
+class Intent(str, Enum):
+    PROVIDE_INFO = "provide_info"
+    REQUEST_CONCEPT = "request_concept"
+    GENERATE_DEMO = "generate_demo"
+    UNKNOWN = "unknown"
+
+
+# Ánh xạ mức độ ưu tiên cho từng intent (càng nhỏ càng xử lý trước)
 INTENT_PRIORITY_MAP = {
-    "provide_info": 1,
-    "request_concept": 2,
-    "generate_demo": 3
+    Intent.PROVIDE_INFO: 1,
+    Intent.REQUEST_CONCEPT: 2,
+    Intent.GENERATE_DEMO: 3
 }
 
-def get_intent_priority(intent: str) -> int:
+
+def get_intent_priority(intent: str | Intent) -> int:
     """
-    Trả về mức ưu tiên của intent.
-    - provide_info → Ưu tiên cao nhất
-    - request_concept → Khi đã có info
-    - generate_demo → Chỉ sau khi có concept
-    - intent khác → Ưu tiên rất thấp (99)
+    Trả về độ ưu tiên xử lý của một intent.
+    Nếu không xác định → trả 99 (ưu tiên thấp nhất).
     """
-    return INTENT_PRIORITY_MAP.get(intent, 99)
+    try:
+        # Nếu là string → convert sang Enum
+        intent_enum = Intent(intent)
+    except ValueError:
+        return 99
+
+    return INTENT_PRIORITY_MAP.get(intent_enum, 99)
