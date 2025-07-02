@@ -1,80 +1,56 @@
 import os
-from dotenv import load_dotenv
+import json
 from openai import OpenAI
-from services.prompt_builder import build_dalle_prompt, build_concept_generation_prompt
+from dotenv import load_dotenv
 
+# Load API key từ file .env
 load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-SYSTEM_PROMPT = """
-You are a virtual assistant for a design agency. Your job is to collect design requirements from the client through a friendly and structured chat. Please follow these rules strictly:
-1. Ask questions one by one to collect these requirements:
-    + Business or individual? What is business name?
-    + What product/service they want to design?
-    + Who is the target audience?
-    + Preferred color palette?
-    + Desired visual style? (e.g., minimal, bold, retro...)
-    + Contact information
-    + Budget and timeline (optional)
-2. After those questions, keep asking client for either extra informations or generate concept. If they say no more extra information, then suggest generating concepts.
-3. When client mentions their company name, search that on the Internet to know them better.
-4. Stay on topic, be polite, warm and clear. Use Vietnamese as the agency is in Vietnam.
-"""
+DEFAULT_CHAT_MODEL = os.getenv("OPENAI_API_MODEL", "gpt-4o")
+DEFAULT_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "dall-e-3")
 
-def ask_gpt(history: list[dict]) -> str:
-    full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history
+# System prompt mặc định để giữ consistency
+SYSTEM_PROMPT = (
+    "Bạn là một trợ lý thiết kế thông minh, nhiệm vụ là hiểu, phân tích và hỗ trợ quy trình thiết kế sản phẩm."
+)
+
+# Hàm chính để gọi GPT với list message
+def ask_gpt(messages: list[dict], model: str = DEFAULT_CHAT_MODEL, temperature: float = 0.7) -> str:
+    # Đảm bảo system prompt luôn đứng đầu
+    if not messages or messages[0].get("role") != "system":
+        messages.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
+
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=full_messages
+        model=model,
+        messages=messages,
+        temperature=temperature
     )
-    return response.choices[0].message.content
+    return response.choices[0].message.content.strip()
 
-def extract_design_data_from_history(history: list[dict]) -> dict:
-    instruction = """
-Dựa trên đoạn hội thoại dưới đây giữa trợ lý và khách hàng, hãy trích xuất lại toàn bộ yêu cầu thiết kế nếu có, dưới dạng JSON với các key sau:
-{
-  "business": string | null,
-  "product": string | null,
-  "audience": string | null,
-  "colors": string | null,
-  "style": string | null,
-  "contact_information": string | null
-}
-Chỉ trả về chuỗi JSON duy nhất, không thêm bất kỳ giải thích nào khác.
-"""
-    full_messages = [{"role": "system", "content": instruction}] + history
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=full_messages
-    )
-    content = response.choices[0].message.content
-    try:
-        import json
-        return json.loads(content)
-    except Exception:
-        return {}
-
-def generate_concepts_from_transcript(transcript: str) -> list[str]:
-    messages = build_concept_generation_prompt(transcript)
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=messages
-    )
-    content = response.choices[0].message.content
-    return [line.strip() for line in content.split("\n") if line.strip()]
-
-def generate_image_from_data(data: dict) -> str:
-    if "selected_concept" in data:
-        prompt = build_dalle_prompt(data["selected_concept"])
-    else:
-        raise ValueError("No valid concept found for image generation.")
+# Gọi GPT và parse kết quả về JSON (nếu dùng cho intent parser, info extractor,...)
+def ask_gpt_json(messages: list[dict], model: str = DEFAULT_CHAT_MODEL, temperature: float = 0.2) -> dict | list:
+    raw = ask_gpt(messages, model, temperature)
     
-    image_response = client.images.generate(
-        model="dall-e-3",
+    try:
+        return json.loads(raw)
+
+    except json.JSONDecodeError as e:
+        print("[ask_gpt_json] ⚠️ JSON decode failed.")
+        print("[GPT Raw Output]:")
+        print(raw)
+        print("[Error]:", e)
+        return []
+
+
+# Sinh ảnh từ mô tả concept
+def generate_image(prompt: str, model: str = DEFAULT_IMAGE_MODEL, size: str = "1024x1024") -> str:
+    response = client.images.generate(
+        model=model,
         prompt=prompt,
-        n=1,
-        size="1024x1024",
-        response_format="url"
+        size=size,
+        quality="standard",
+        n=1
     )
-    return image_response.data[0].url
+    return response.data[0].url
