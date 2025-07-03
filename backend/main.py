@@ -7,7 +7,7 @@ from starlette.responses import Response
 import os
 from dotenv import load_dotenv
 
-from routers.chat_routes import router as chat_router
+from chat_routes import router as chat_router
 
 load_dotenv()
 

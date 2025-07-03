@@ -6,14 +6,21 @@ let chatHistory = [];
 let collectedData = {};
 let conceptButtonGroup = null;
 
+// Tạo session_id cố định cho user
+let sessionId = localStorage.getItem("session_id");
+if (!sessionId) {
+  sessionId = crypto.randomUUID();
+  localStorage.setItem("session_id", sessionId);
+}
+
 const BASE_URL = window.location.origin;
 
+// Gửi tin nhắn khi Enter
 inputField.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    sendButton.click();
-  }
+  if (e.key === "Enter") sendButton.click();
 });
 
+// Gửi khi bấm nút
 sendButton.addEventListener("click", async () => {
   const userMessage = inputField.value.trim();
   if (!userMessage) return;
@@ -26,6 +33,7 @@ sendButton.addEventListener("click", async () => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      session_id: sessionId,
       message: userMessage,
       history: chatHistory,
       design_data: collectedData
@@ -33,9 +41,14 @@ sendButton.addEventListener("click", async () => {
   });
 
   const data = await response.json();
-  const assistantReply = data.reply;
+
+  const assistantReply = data.reply || "Xin lỗi, tôi chưa xử lý được yêu cầu.";
   chatHistory.push({ role: "assistant", content: assistantReply });
   appendMessage("assistant", assistantReply);
+
+  if (data.design_data) {
+    collectedData = { ...collectedData, ...data.design_data };
+  }
 
   if (data.image_url) {
     appendImage(data.image_url);
@@ -61,20 +74,23 @@ function showConceptButtons(concepts) {
     btn.addEventListener("click", async () => {
       btn.classList.add("selected-concept");
 
+      // Disable all buttons
       const allBtns = conceptButtonGroup.querySelectorAll("button");
-      allBtns.forEach(b => {
+      allBtns.forEach((b) => {
         b.disabled = true;
         b.style.cursor = "not-allowed";
         b.style.opacity = "0.6";
       });
 
-      appendMessage("user", `Tôi chọn ý tưởng ${index + 1}`);
-      chatHistory.push({ role: "user", content: `Tôi chọn ý tưởng ${index + 1}` });
+      const choiceText = `Tôi chọn ý tưởng ${index + 1}`;
+      appendMessage("user", choiceText);
+      chatHistory.push({ role: "user", content: choiceText });
 
       const response = await fetch(`${BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          session_id: sessionId,
           selected_concept: conceptText,
           message: "",
           history: chatHistory,
@@ -83,8 +99,12 @@ function showConceptButtons(concepts) {
       });
 
       const data = await response.json();
+
+      const reply = data.reply || "Đây là hình ảnh demo dựa trên concept bạn đã chọn.";
+      chatHistory.push({ role: "assistant", content: reply });
+      appendMessage("assistant", reply);
+
       if (data.image_url) {
-        appendMessage("assistant", data.reply || "Đây là hình ảnh demo về ý tưởng quý khách đã chọn.");
         appendImage(data.image_url);
       }
     });
@@ -97,7 +117,8 @@ function showConceptButtons(concepts) {
 }
 
 window.addEventListener("load", () => {
-  const welcome = "Xin chào quý khách! Tôi là trợ lý thiết kế ảo thông minh, tôi sẽ giúp đỡ thiết kế ý tưởng cho quý khách. Xin hãy gửi tin nhắn bất kì để bắt đầu ạ.";
+  const welcome =
+    "Xin chào quý khách! Tôi là trợ lý thiết kế ảo thông minh, tôi sẽ giúp đỡ thiết kế ý tưởng cho quý khách. Xin hãy gửi tin nhắn bất kỳ để bắt đầu ạ.";
   appendMessage("assistant", welcome);
   chatHistory.push({ role: "assistant", content: welcome });
 });

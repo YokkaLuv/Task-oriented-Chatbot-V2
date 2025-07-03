@@ -1,4 +1,4 @@
-from backend.services.openai_service import ask_gpt_json
+from services.openai_service import ask_gpt_json
 import json
 
 def analyze_phrases(phrases: list[str], session_id: str = "") -> list[dict]:
@@ -21,13 +21,8 @@ Trả về kết quả dưới dạng JSON array theo cấu trúc:
 
 Các intent hợp lệ có thể gồm:
 - provide_info
-- ask_missing
 - request_concept
-- pick_concept
 - generate_demo
-- greeting
-- delivery_request
-- unknown
 
 Nếu không xác định được → gán intent là "unknown".
 Chỉ trả kết quả JSON. Không thêm giải thích.

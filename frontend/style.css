@@ -1,26 +1,45 @@
+/* Reset layout */
 body {
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
   margin: 0;
-  padding: 0;
+  padding: 40px 0;
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  min-height: 100vh;
 }
 
+/* Wrapper tổng */
+.chat-wrapper {
+  width: 100%;
+  max-width: 520px;
+}
+
+/* Tiêu đề */
+.chat-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.5rem;
+  padding: 16px 0 8px;
+  background-color: #ffffff;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Container chính */
 .chat-container {
   background-color: #ffffff;
   width: 100%;
-  max-width: 500px;
-  height: 90vh;
+  height: 80vh;
   display: flex;
   flex-direction: column;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px rgba(0,0,0,0.08);
   overflow: hidden;
 }
 
+/* Vùng hiển thị chat */
 .chat-box {
   flex: 1;
   padding: 16px;
@@ -30,6 +49,7 @@ body {
   flex-direction: column;
 }
 
+/* Nhóm input */
 .input-group {
   display: flex;
   padding: 8px;
@@ -60,45 +80,37 @@ body {
   background-color: #0056b3;
 }
 
+/* Tin nhắn */
 .user-msg, .bot-msg {
   padding: 8px 12px;
   margin-bottom: 8px;
   border-radius: 6px;
   max-width: 80%;
   word-wrap: break-word;
+  border: 1px solid transparent;
 }
 
 .user-msg {
   background-color: #dcf8c6;
   align-self: flex-end;
+  border-color: #c4e3b2;
 }
 
 .bot-msg {
-  background-color: #e9e9eb;
+  background-color: #eef1f5;
   align-self: flex-start;
+  border-color: #dcdfe5;
 }
 
-.concept-btn {
-  background-color: #1d4ed8;
-  color: white;
-  padding: 10px;
+/* Concept buttons */
+.concept-group {
   margin-top: 10px;
-  border: none;
-  border-radius: 6px;
-  width: 100%;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 1rem;
-}
-
-.concept-btn:hover {
-  background-color: #2563eb;
 }
 
 .concept-choice-btn {
-  background-color: #f0f0f0;
+  background-color: #f9fafb;
   color: #333;
-  padding: 10px;
+  padding: 10px 12px;
   margin-top: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -120,6 +132,7 @@ body {
   border: 2px solid #16a34a;
 }
 
+/* Hình ảnh */
 .generated-image {
   max-width: 100%;
   border-radius: 8px;
@@ -127,4 +140,31 @@ body {
   margin-bottom: 10px;
   border: 2px solid #e5e7eb;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Footer nếu cần */
+.chat-footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 12px;
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 600px) {
+  .chat-container {
+    height: 85vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  #user-input, #send-button {
+    font-size: 0.95rem;
+  }
+
+  .chat-title {
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 8px;
+  }
 }

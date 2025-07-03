@@ -1,6 +1,7 @@
 import os
-from pymongo import MongoClient, ASCENDING
+from pymongo import MongoClient
 from dotenv import load_dotenv
+from schemas.design_schema import DEFAULT_DESIGN_DATA
 
 load_dotenv()
 
@@ -12,18 +13,15 @@ client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
 
-# Tạo index session_id (chính là _id)
-collection.create_index([("_id", ASCENDING)], unique=True)
-
 def init_session(session_id: str):
     """
-    Tạo session mới nếu chưa tồn tại
+    Tạo session mới nếu chưa tồn tại, sử dụng schema chuẩn
     """
     collection.update_one(
         {"_id": session_id},
         {
             "$setOnInsert": {
-                "design_data": {},
+                "design_data": DEFAULT_DESIGN_DATA.copy(),
                 "concepts": [],
                 "selected_concept": None,
                 "image_url": None,
@@ -42,14 +40,16 @@ def get_session(session_id: str) -> dict | None:
 
 def update_design_data(session_id: str, new_data: dict):
     """
-    Gộp thêm dữ liệu vào design_data
+    Gộp thêm dữ liệu vào design_data theo schema chuẩn
     """
     for key, value in new_data.items():
-        collection.update_one(
-            {"_id": session_id},
-            {"$set": {f"design_data.{key}": value}}
-        )
-
+        if key in DEFAULT_DESIGN_DATA:
+            collection.update_one(
+                {"_id": session_id},
+                {"$set": {f"design_data.{key}": value}}
+            )
+        else:
+            print(f"[DB Service] ⚠️ Field không hợp lệ: {key}")
 
 def append_history(session_id: str, message: str):
     """
@@ -60,7 +60,6 @@ def append_history(session_id: str, message: str):
         {"$push": {"history": message}}
     )
 
-
 def store_concepts(session_id: str, concepts: list[str]):
     """
     Lưu danh sách concept sinh ra từ GPT
@@ -69,7 +68,6 @@ def store_concepts(session_id: str, concepts: list[str]):
         {"_id": session_id},
         {"$set": {"concepts": concepts}}
     )
-
 
 def store_selected_concept(session_id: str, concept: str):
     """
@@ -80,7 +78,6 @@ def store_selected_concept(session_id: str, concept: str):
         {"$set": {"selected_concept": concept}}
     )
 
-
 def store_image_url(session_id: str, url: str):
     """
     Lưu URL ảnh đã tạo
@@ -89,3 +86,10 @@ def store_image_url(session_id: str, url: str):
         {"_id": session_id},
         {"$set": {"image_url": url}}
     )
+
+def get_design_data_for_session(session_id: str) -> dict:
+    """
+    Trả về phần design_data (riêng) để frontend cập nhật nếu cần
+    """
+    session = get_session(session_id)
+    return session.get("design_data", {}) if session else {}

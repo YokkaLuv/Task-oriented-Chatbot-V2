@@ -1,4 +1,4 @@
-from backend.services.openai_service import ask_gpt
+from services.openai_service import ask_gpt
 import re
 
 def split_message_into_phrases(message: str) -> list[str]:

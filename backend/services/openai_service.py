@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -8,7 +9,7 @@ load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-DEFAULT_CHAT_MODEL = os.getenv("OPENAI_API_MODEL", "gpt-4o")
+DEFAULT_CHAT_MODEL = os.getenv("OPENAI_API_MODEL", "gpt-4o-mini")
 DEFAULT_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "dall-e-3")
 
 # System prompt mặc định để giữ consistency
@@ -29,20 +30,23 @@ def ask_gpt(messages: list[dict], model: str = DEFAULT_CHAT_MODEL, temperature: 
     )
     return response.choices[0].message.content.strip()
 
-# Gọi GPT và parse kết quả về JSON (nếu dùng cho intent parser, info extractor,...)
-def ask_gpt_json(messages: list[dict], model: str = DEFAULT_CHAT_MODEL, temperature: float = 0.2) -> dict | list:
-    raw = ask_gpt(messages, model, temperature)
+def ask_gpt_json(messages: list[dict], model: str = "gpt-4o", temperature: float = 0.2):
+    raw = ask_gpt(messages, model=model, temperature=temperature)
+
+    # 💥 Xử lý markdown code block: loại bỏ ```json ... ```
+    if "```" in raw:
+        raw = re.sub(r"```[a-zA-Z]*\n?", "", raw).strip()
     
     try:
-        return json.loads(raw)
-
+        parsed = json.loads(raw)
+        if not isinstance(parsed, (dict, list)):
+            print("[ask_gpt_json] ⚠️ Parsed JSON nhưng không phải dict/list. Type:", type(parsed))
+        return parsed
     except json.JSONDecodeError as e:
         print("[ask_gpt_json] ⚠️ JSON decode failed.")
-        print("[GPT Raw Output]:")
-        print(raw)
-        print("[Error]:", e)
-        return []
-
+        print("[GPT Raw Output]:\n", raw)
+        print("[DecodeError]", e)
+        return None
 
 # Sinh ảnh từ mô tả concept
 def generate_image(prompt: str, model: str = DEFAULT_IMAGE_MODEL, size: str = "1024x1024") -> str:

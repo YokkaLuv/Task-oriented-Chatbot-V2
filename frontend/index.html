@@ -1,19 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Design Assistant Chatbot</title>
+  <title>Trợ lý thiết kế ảo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="chat-container">
-    <div id="chat-box" class="chat-box"></div>
-    <div class="input-group">
-      <input type="text" id="user-input" placeholder="Soạn tin nhắn" />
-      <button id="send-button">Gửi</button>
+  <div class="chat-wrapper">
+    <h1 class="chat-title">Trợ lý thiết kế ảo</h1>
+
+    <div class="chat-container">
+      <div id="chat-box" class="chat-box"></div>
+
+      <div class="input-group">
+        <input type="text" id="user-input" placeholder="Soạn tin nhắn tại đây..." autocomplete="off" />
+        <button id="send-button">Gửi</button>
+      </div>
     </div>
+
+    <p class="chat-footer">© 2025 Trợ lý thiết kế AI | Phiên bản thử nghiệm</p>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>

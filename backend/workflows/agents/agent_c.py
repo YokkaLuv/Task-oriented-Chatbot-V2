@@ -1,30 +1,22 @@
-from backend.services.db_service import get_session
+from services.db_service import get_session
+from schemas.design_schema import DEFAULT_DESIGN_DATA
 
-# Danh sách các trường bắt buộc trong thiết kế
-REQUIRED_FIELDS = [
-    "product",
-    "color",
-    "material",
-    "style",
-    "audience"
-]
-
-def check_missing_fields(session_id: str) -> list[str]:
+def check_missing_fields(session_id: str) -> dict:
     """
     Agent C: Kiểm tra các trường còn thiếu trong design_data.
-    Trả về danh sách các trường bị thiếu.
+    Trả về dict chứa 'missing_fields' nếu có.
     """
 
     session = get_session(session_id)
     if not session:
         print(f"[Agent C] ⚠️ Không tìm thấy session: {session_id}")
-        return REQUIRED_FIELDS.copy()  # nếu chưa có gì thì xem như thiếu hết
+        return {"missing_fields": list(DEFAULT_DESIGN_DATA.keys())}
 
     design_data = session.get("design_data", {})
     missing = []
 
-    for field in REQUIRED_FIELDS:
-        if field not in design_data or not design_data[field]:
+    for field in DEFAULT_DESIGN_DATA:
+        if not design_data.get(field):  # None, "", [] đều coi như thiếu
             missing.append(field)
 
-    return missing
+    return {"missing_fields": missing} if missing else {}
