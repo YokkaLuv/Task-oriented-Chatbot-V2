@@ -19,13 +19,20 @@ Trả về kết quả dưới dạng JSON array theo cấu trúc:
   ...
 ]
 
-Các intent hợp lệ có thể gồm:
-- provide_info
-- request_concept
-- generate_demo
+Các intent hợp lệ gồm:
+- provide_info         → khi người dùng cung cấp thông tin chi tiết cho thiết kế (màu sắc, chất liệu, đối tượng,...)
+- request_concept      → khi người dùng yêu cầu bạn đưa ra các concept thiết kế dựa trên thông tin hiện có
+- choose_concept       → khi người dùng chọn một concept cụ thể từ danh sách đã gợi ý
+- generate_demo        → khi người dùng yêu cầu tạo hình ảnh demo minh hoạ từ concept đã chọn
+- unknown              → nếu không xác định được ý định
 
-Nếu không xác định được → gán intent là "unknown".
-Chỉ trả kết quả JSON. Không thêm giải thích.
+Lưu ý:
+- Nếu người dùng nói "Tôi chọn concept Xanh Biển Sâu" → intent là "choose_concept"
+- Nếu người dùng nói "Hãy tạo hình ảnh cho thiết kế của tôi" → intent là "generate_demo"
+- Nếu người dùng mô tả sản phẩm (tên sản phẩm, màu sắc, chất liệu, đối tượng, mục đích...) → intent là "provide_info"
+- Nếu người dùng yêu cầu bạn đề xuất ý tưởng thiết kế → intent là "request_concept"
+
+Chỉ trả kết quả JSON hợp lệ, không được giải thích gì thêm.
 
 Mệnh đề:
 {json.dumps(phrases, ensure_ascii=False, indent=2)}

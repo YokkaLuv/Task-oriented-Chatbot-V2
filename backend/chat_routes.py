@@ -13,6 +13,13 @@ async def chat_endpoint(request: Request):
         session_id: str = body.get("session_id", "default")
         selected_concept: str = body.get("selected_concept")
 
+        # ✅ Log thông tin phiên làm việc
+        print(f"\n[📨 Chat] Session ID: {session_id}")
+        if message:
+            print(f"[🗣️ Message] {message}")
+        if selected_concept:
+            print(f"[✅ Concept Selected] {selected_concept}")
+
         # Nếu user chọn concept → lưu vào session
         if selected_concept:
             session = get_session(session_id)

@@ -40,7 +40,7 @@ def summarize_response(results: list[dict]) -> dict:
     # Chuyển set → list để tương thích JSON
     merged["missing_fields"] = list(merged["missing_fields"])
 
-    # Chuyển về JSON cho GPT xử lý
+    # Chuẩn bị prompt cho GPT tổng hợp
     input_json = json.dumps(merged, ensure_ascii=False, indent=2)
 
     prompt = f"""
@@ -55,27 +55,27 @@ Dữ liệu đầu vào có thể bao gồm:
 
 Yêu cầu:
 - Nếu có missing_fields: hãy nói rõ còn thiếu gì và khuyến khích người dùng bổ sung.
-- Nếu có concepts: hãy giới thiệu ngắn gọn rằng đã sinh xong concept và đề nghị người dùng chọn.
+- Nếu có concepts: hãy giới thiệu ngắn gọn rằng đã sinh xong concept và đề nghị người dùng xem qua.
 - Nếu có image_url: hãy giới thiệu rằng ảnh đã được tạo thành công và đưa link ảnh ra.
 - Nếu không có gì cụ thể, hãy xác nhận rằng thông tin đã được ghi nhận.
 
 Kết quả:
 - Trả lại chỉ một đoạn văn duy nhất, không phân tích dữ liệu, không giải thích thêm, văn phong thân thiện và chuyên nghiệp.
 
----
-
-Dữ liệu đầu vào:
-
+--- Dữ liệu đầu vào ---
 {input_json}
-
----
+--- Hết dữ liệu ---
 Trả lời:
 """
 
-    reply = ask_gpt([{"role": "user", "content": prompt}], temperature=0.5)
+    reply = ask_gpt([{"role": "user", "content": prompt}], temperature=0.5).strip()
+
+    # Gắn concept (nếu có) vào cuối reply luôn
+    if merged["concepts"]:
+        concept_text = "\n\n" + "\n\n".join(merged["concepts"])
+        reply += f"\n\n---\n**Các ý tưởng thiết kế:**\n{concept_text}"
 
     return {
-        "reply": reply.strip(),
-        "concepts": merged["concepts"],
+        "reply": reply,
         "image_url": merged["image_url"]
     }
