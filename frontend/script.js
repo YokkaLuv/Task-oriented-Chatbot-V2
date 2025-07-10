@@ -10,12 +10,21 @@ const sessionId = crypto.randomUUID();
 
 const BASE_URL = window.location.origin;
 
-// Gửi tin nhắn khi Enter
+// ✅ Gửi tin nhắn khi Enter (trừ khi giữ Shift để xuống dòng)
 inputField.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendButton.click();
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // Ngăn xuống dòng mặc định
+    sendButton.click();
+  }
 });
 
-// Gửi khi bấm nút
+// ✅ Tự động co giãn chiều cao textarea
+inputField.addEventListener("input", () => {
+  inputField.style.height = "auto"; // reset trước
+  inputField.style.height = inputField.scrollHeight + "px";
+});
+
+// ✅ Gửi tin nhắn khi bấm nút
 sendButton.addEventListener("click", async () => {
   const userMessage = inputField.value.trim();
   if (!userMessage) return;
@@ -23,6 +32,7 @@ sendButton.addEventListener("click", async () => {
   appendMessage("user", userMessage);
   chatHistory.push({ role: "user", content: userMessage });
   inputField.value = "";
+  inputField.style.height = "38px"; // reset lại chiều cao sau khi gửi
 
   const response = await fetch(`${BASE_URL}/chat`, {
     method: "POST",
@@ -31,8 +41,8 @@ sendButton.addEventListener("click", async () => {
       session_id: sessionId,
       message: userMessage,
       history: chatHistory,
-      design_data: collectedData
-    })
+      design_data: collectedData,
+    }),
   });
 
   const data = await response.json();
@@ -50,6 +60,7 @@ sendButton.addEventListener("click", async () => {
   }
 });
 
+// ✅ Tin nhắn chào khi mở trang
 window.addEventListener("load", () => {
   const welcome =
     "Xin chào quý khách! Tôi là trợ lý thiết kế ảo thông minh, tôi sẽ giúp đỡ thiết kế ý tưởng cho quý khách. Xin hãy gửi thông tin bất kỳ để bắt đầu ạ.";
@@ -57,12 +68,13 @@ window.addEventListener("load", () => {
   chatHistory.push({ role: "assistant", content: welcome });
 });
 
+// ✅ Hiển thị tin nhắn
 function appendMessage(role, text) {
   const msg = document.createElement("div");
   msg.className = role === "user" ? "user-msg" : "bot-msg";
 
   if (role === "assistant") {
-    msg.innerHTML = marked.parse(text);  // ✅ Hỗ trợ markdown cho assistant
+    msg.innerHTML = marked.parse(text); // Markdown cho assistant
   } else {
     msg.textContent = text;
   }
@@ -71,6 +83,7 @@ function appendMessage(role, text) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
+// ✅ Hiển thị ảnh
 function appendImage(url) {
   const img = document.createElement("img");
   img.src = url;

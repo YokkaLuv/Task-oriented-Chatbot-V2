@@ -3,6 +3,5 @@ DEFAULT_DESIGN_DATA = {
     "color": None,
     "material": None,
     "style": None,
-    "audience": None,
-    "company": None
+    "company": "Cá nhân"
 }

@@ -36,7 +36,7 @@ def dispatch_actions(actions: list[dict], session_id: str) -> list[dict]:
             case Intent.GENERATE_DEMO:
                 result_e = agent_e.generate_image_from_selected_concept(session_id)
                 if result_e is not None:
-                    results.append({"image_url": result_e})
+                    results.append(result_e) 
 
             case _:
                 print(f"[DISPATCH WARNING] Không xử lý intent: {intent}")

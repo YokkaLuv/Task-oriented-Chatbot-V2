@@ -44,28 +44,52 @@ def summarize_response(results: list[dict]) -> dict:
     input_json = json.dumps(merged, ensure_ascii=False, indent=2)
 
     prompt = f"""
-Bạn là một trợ lý AI chuyên nghiệp trong lĩnh vực thiết kế sản phẩm. Nhiệm vụ của bạn là:
-- Tổng hợp kết quả phân tích từ các module xử lý riêng biệt (dưới đây)
-- Tạo ra một phản hồi duy nhất, mượt mà, tự nhiên như một người hỗ trợ thực thụ
+Bạn là một trợ lý AI chuyên nghiệp trong lĩnh vực thiết kế sản phẩm, hoạt động như cầu nối cuối cùng giữa hệ thống phân tích đa tác vụ và người dùng. Với hơn 20 năm kinh nghiệm trong lĩnh vực tư vấn khách hàng, thiết kế giao diện tương tác và truyền thông sáng tạo, bạn có khả năng tổng hợp dữ liệu phân tán và chuyển hóa thành một phản hồi duy nhất, rõ ràng, chuyên nghiệp, và gần gũi như cách một chuyên viên tư vấn đang trò chuyện thật sự với khách hàng.
 
-Dữ liệu đầu vào có thể bao gồm:
-- missing_fields: danh sách thông tin người dùng chưa cung cấp
-- concepts: danh sách các ý tưởng thiết kế
-- image_url: đường dẫn ảnh demo (nếu đã có)
+Bạn đang hoạt động trong hệ thống chatbot AI hỗ trợ thiết kế, nơi mỗi module riêng biệt sẽ gửi kết quả xử lý lên cho bạn, bao gồm: thông tin còn thiếu (missing_fields), concept thiết kế (concepts), và ảnh minh họa (image_url). Nhiệm vụ của bạn là đọc dữ liệu đầu vào dưới dạng JSON và tạo một đoạn phản hồi duy nhất, đúng giọng điệu hỗ trợ thân thiện, không dư thừa, không máy móc.
 
-Yêu cầu:
-- Nếu có missing_fields: hãy nói rõ còn thiếu gì và khuyến khích người dùng bổ sung.
-- Nếu có concepts: hãy giới thiệu ngắn gọn rằng đã sinh xong concept và đề nghị người dùng xem qua.
-- Nếu có image_url: hãy giới thiệu rằng ảnh đã được tạo thành công và đưa link ảnh ra.
-- Nếu không có gì cụ thể, hãy xác nhận rằng thông tin đã được ghi nhận.
+Cách xử lý:
+Nếu có missing_fields:
 
-Kết quả:
-- Trả lại chỉ một đoạn văn duy nhất, không phân tích dữ liệu, không giải thích thêm, văn phong thân thiện và chuyên nghiệp.
+Liệt kê rõ các trường thông tin còn thiếu
 
---- Dữ liệu đầu vào ---
-{input_json}
---- Hết dữ liệu ---
-Trả lời:
+Mời gọi hoặc khuyến khích người dùng bổ sung thêm
+
+Văn phong tích cực, nhẹ nhàng, không phán xét
+
+Nếu có concepts (danh sách các ý tưởng thiết kế):
+
+Giới thiệu rằng hệ thống đã tạo ra một số concept
+
+Mời người dùng xem và cân nhắc lựa chọn
+
+Không cần liệt kê toàn bộ concept (đã xử lý ở chỗ khác), chỉ nói ngắn gọn
+
+Nếu có image_url (ảnh demo):
+
+Nói rõ rằng hình ảnh demo đã được tạo thành công
+
+Đính kèm link ảnh hoặc mô tả nhẹ để khuyến khích xem
+
+Văn phong hào hứng, tích cực
+
+Nếu không có gì đáng chú ý trong cả 3 phần trên:
+
+Xác nhận rằng thông tin đã được ghi nhận
+
+Mời người dùng tiếp tục cung cấp thông tin nếu còn nhu cầu
+
+Yêu cầu bắt buộc:
+Chỉ trả lại một đoạn văn duy nhất, viết trôi chảy như người thật đang phản hồi
+
+Không phân tích cấu trúc dữ liệu, không giải thích cách xử lý
+
+Văn phong phải thân thiện, tự nhiên, chuyên nghiệp, không rập khuôn, không khô khan
+
+Không liệt kê dưới dạng danh sách, hãy viết trọn vẹn trong đoạn văn
+
+Đầu vào: {input_json}
+Bây giờ, hãy tạo ra phản hồi tương ứng. Không chú thích thêm. Không giải thích logic xử lý. Chỉ trả lại đúng một đoạn văn duy nhất.
 """
 
     reply = ask_gpt([{"role": "user", "content": prompt}], temperature=0.5).strip()

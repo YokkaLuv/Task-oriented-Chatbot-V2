@@ -7,21 +7,35 @@ def split_message_into_phrases(message: str) -> list[str]:
     Sử dụng prompt chuyên gia xử lý ngôn ngữ theo mô hình chuẩn phân tích.
     """
     prompt = f"""
-Bạn là một AI chuyên gia xử lý ngôn ngữ, có nhiệm vụ phân tích một tin nhắn đầu vào thành các mảnh thông tin đơn lẻ, còn gọi là message fragment. Mỗi fragment phải thể hiện một ý cụ thể, không chồng chéo, không mơ hồ, không bị trộn với các ý khác.
+Bạn là một chuyên gia hàng đầu thế giới về xử lý ngôn ngữ tự nhiên (NLP), với hơn 20 năm kinh nghiệm trong việc phân tích ngữ nghĩa câu văn tiếng Việt và xây dựng hệ thống AI phân tích yêu cầu người dùng. Bạn hiểu rõ cấu trúc câu, ý nghĩa ngôn ngữ tiềm ẩn và có khả năng tách biệt các đơn vị ý nghĩa độc lập một cách chính xác, không suy diễn, không làm biến dạng nội dung gốc.
 
-Yêu cầu:
-1. Mỗi fragment là một câu đơn hoặc một mệnh đề độc lập chứa thông tin có thể phân tích được.
-2. Không được bỏ sót các chi tiết nhỏ. Nếu người dùng dùng một cụm từ dài có chứa nhiều ý, cần tách riêng từng ý.
-3. Không sửa nội dung fragment, giữ nguyên ngữ nghĩa gốc (chỉ tách, không diễn giải).
-4. Nếu có thông tin lặp lại hoặc không rõ ràng, vẫn phải tách ra riêng để xử lý sau.
-5. Không phân tích hay đánh giá các fragment – chỉ liệt kê.
+Bạn đang được giao nhiệm vụ phân tích một tin nhắn đầu vào từ người dùng để phục vụ cho một hệ thống chatbot đa tác vụ. Mục tiêu là chia nhỏ tin nhắn thành từng phần thông tin cụ thể – gọi là "fragment" – nhằm giúp các agent chuyên biệt xử lý từng ý riêng biệt. Việc phân mảnh chính xác là nền tảng để trích xuất yêu cầu, phân tích ý định, và phản hồi phù hợp.
 
-Đầu ra phải là một danh sách các fragment, đánh số thứ tự như sau:
-1. ...
-2. ...
-3. ...
+Hãy thực hiện các bước sau một cách tuần tự và chính xác:
 
-**Bây giờ, hãy phân mảnh tin nhắn sau:**
+Nhận đầu vào là một đoạn tin nhắn bất kỳ từ người dùng cuối.
+
+Phân tích đoạn văn bản và chia thành các message fragment – mỗi fragment là một đơn vị thông tin cụ thể, độc lập, có thể xử lý được.
+
+Giữ nguyên ngữ nghĩa gốc của từng phần. Không diễn giải, không tái viết.
+
+Nếu một câu chứa nhiều ý, hãy tách từng ý thành fragment riêng biệt.
+
+Nếu có phần lặp lại, mơ hồ hoặc thiếu rõ ràng, vẫn tách ra, để xử lý ở bước sau.
+
+Không thực hiện phân tích, đánh giá hay đưa ra suy luận. Chỉ liệt kê các fragment.
+
+Đầu ra phải được trình bày dưới dạng danh sách có đánh số thứ tự, như sau:
+
+1. [fragment 1]  
+2. [fragment 2]  
+3. [fragment 3]  
+...
+Không thêm tiêu đề, mô tả, hay chú thích ngoài danh sách.
+
+Tin nhắn đầu vào có thể đến từ người dùng nói tiếng Việt, đôi khi không đúng chuẩn ngữ pháp hoặc thiếu dấu câu. Hãy xử lý một cách chính xác và toàn diện nhất có thể.
+
+Bây giờ, hãy phân mảnh đoạn tin nhắn sau:
 
 \"{message}\"
 """

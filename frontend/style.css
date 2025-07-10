@@ -38,7 +38,7 @@ body {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.08);
   overflow: hidden;
-  border: 1px solid #EC881E
+  border: 1px solid #EC881E;
 }
 
 /* Vùng hiển thị chat */
@@ -57,6 +57,7 @@ body {
   background-color: #303030;
 }
 
+/* ✅ textarea thay vì input */
 #user-input {
   flex: 1;
   padding: 10px;
@@ -64,8 +65,17 @@ body {
   border-radius: 4px;
   background-color: #303030;
   color: #ffffff;
+  resize: none;
+  border: none;
+  height: 38px;
+  line-height: 1.4;
+  overflow-y: hidden;
+  max-height: 150px;
+  box-sizing: border-box;
+  white-space: pre-wrap;
 }
 
+/* Nút gửi */
 #send-button {
   margin-left: 8px;
   padding: 10px 16px;
