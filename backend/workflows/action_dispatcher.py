@@ -3,9 +3,11 @@ from workflows.agents import (
     agent_b,
     agent_c,
     agent_d,
-    agent_e
+    agent_e,
+    agent_g,
 )
-from services.db_service import store_selected_concept
+from services.db_service import store_selected_concept, get_session
+
 
 def dispatch_actions(actions: list[dict], session_id: str) -> list[dict]:
     """
@@ -30,13 +32,23 @@ def dispatch_actions(actions: list[dict], session_id: str) -> list[dict]:
                     results.append(result_d)
 
             case Intent.CHOOSE_CONCEPT:
-                store_selected_concept(session_id, phrase)
-                results.append({"selected_concept": phrase})
+                # 🧠 Trích index từ câu người dùng
+                index = agent_g.extract_concept_index(phrase)
+                session = get_session(session_id)
+                all_concepts = session.get("concepts") if session else []
+
+                if index is not None and 0 <= index < len(all_concepts):
+                    selected = all_concepts[index]
+                    store_selected_concept(session_id, selected)
+                    results.append({"selected_concept": selected})
+                    print(f"[Dispatcher] ✅ Đã chọn concept: {selected}")
+                else:
+                    print(f"[Dispatcher] ⚠️ Không xác định được concept từ: '{phrase}'")
 
             case Intent.GENERATE_DEMO:
                 result_e = agent_e.generate_image_from_selected_concept(session_id)
                 if result_e is not None:
-                    results.append(result_e) 
+                    results.append(result_e)
 
             case _:
                 print(f"[DISPATCH WARNING] Không xử lý intent: {intent}")

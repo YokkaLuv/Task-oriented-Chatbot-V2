@@ -21,6 +21,7 @@ Trả về kết quả dưới dạng JSON array theo cấu trúc:
 
 Các intent hợp lệ gồm:
 - provide_info         → khi người dùng cung cấp thông tin chi tiết cho thiết kế (màu sắc, chất liệu, đối tượng,...)
+- remove_info          → khi người dùng yêu cầu xoá thông tin đã cung cấp (ví dụ: xoá màu đen, bỏ chất liệu nhựa,...)
 - request_concept      → khi người dùng yêu cầu bạn đưa ra các concept thiết kế dựa trên thông tin hiện có
 - choose_concept       → khi người dùng chọn một concept cụ thể từ danh sách đã gợi ý
 - generate_demo        → khi người dùng yêu cầu tạo hình ảnh demo minh hoạ từ concept đã chọn
@@ -30,6 +31,7 @@ Lưu ý:
 - Nếu người dùng nói "Tôi chọn concept Xanh Biển Sâu" → intent là "choose_concept"
 - Nếu người dùng nói "Hãy tạo hình ảnh cho thiết kế của tôi" → intent là "generate_demo"
 - Nếu người dùng mô tả sản phẩm (tên sản phẩm, màu sắc, chất liệu, đối tượng, mục đích...) → intent là "provide_info"
+- Nếu người dùng muốn xóa mô tả → intent là "remove_info"
 - Nếu người dùng yêu cầu bạn đề xuất ý tưởng thiết kế → intent là "request_concept"
 
 Chỉ trả kết quả JSON hợp lệ, không được giải thích gì thêm.

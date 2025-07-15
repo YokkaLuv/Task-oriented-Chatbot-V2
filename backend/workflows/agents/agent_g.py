@@ -36,3 +36,31 @@ Hãy tạo prompt DALL·E để vẽ hình minh họa theo concept trên, chính
     result = ask_gpt([{"role": "user", "content": prompt}], temperature=0.7)
 
     return result.strip()
+
+
+def extract_concept_index(phrase: str) -> int | None:
+    """
+    Agent G: Trích số thứ tự concept mà người dùng chọn từ tin nhắn.
+
+    Ví dụ: "Tôi chọn concept 3" → return 2 (zero-based)
+    """
+    prompt = f"""
+Bạn là một hệ thống trích xuất thông tin.
+
+Người dùng sẽ nói về việc chọn một concept thiết kế bằng ngôn ngữ tự nhiên.
+
+Hãy đọc câu nói và trích ra **chỉ số thứ tự** của concept mà họ nhắc đến (dạng số nguyên bắt đầu từ 1).
+
+Nếu không rõ ràng hoặc không có số, trả về null.
+
+Chỉ trả lời bằng số duy nhất (hoặc null). Không giải thích.
+
+Câu: "{phrase}"
+"""
+    result = ask_gpt([{"role": "user", "content": prompt}], temperature=0.2)
+
+    try:
+        num = int(result.strip())
+        return num - 1 if num > 0 else None
+    except:
+        return None

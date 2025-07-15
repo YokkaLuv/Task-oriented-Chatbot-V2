@@ -7,7 +7,6 @@ let collectedData = {};
 
 // ✅ Luôn tạo session ID mới khi load trang
 const sessionId = crypto.randomUUID();
-
 const BASE_URL = window.location.origin;
 
 // ✅ Gửi tin nhắn khi Enter (trừ khi giữ Shift để xuống dòng)
@@ -20,7 +19,7 @@ inputField.addEventListener("keydown", (e) => {
 
 // ✅ Tự động co giãn chiều cao textarea
 inputField.addEventListener("input", () => {
-  inputField.style.height = "auto"; // reset trước
+  inputField.style.height = "auto";
   inputField.style.height = inputField.scrollHeight + "px";
 });
 
@@ -32,7 +31,7 @@ sendButton.addEventListener("click", async () => {
   appendMessage("user", userMessage);
   chatHistory.push({ role: "user", content: userMessage });
   inputField.value = "";
-  inputField.style.height = "38px"; // reset lại chiều cao sau khi gửi
+  inputField.style.height = "38px"; // reset chiều cao
 
   const response = await fetch(`${BASE_URL}/chat`, {
     method: "POST",
@@ -74,9 +73,14 @@ function appendMessage(role, text) {
   msg.className = role === "user" ? "user-msg" : "bot-msg";
 
   if (role === "assistant") {
-    msg.innerHTML = marked.parse(text); // Markdown cho assistant
+    msg.innerHTML = marked.parse(text); // hỗ trợ markdown
   } else {
-    msg.textContent = text;
+    // giữ xuống dòng và escape HTML cơ bản
+    msg.innerHTML = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br>");
   }
 
   chatBox.appendChild(msg);

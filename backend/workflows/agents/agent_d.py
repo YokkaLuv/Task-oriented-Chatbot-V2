@@ -32,7 +32,7 @@ Tạo từ 3 đến 5 concept thiết kế thương hiệu khác nhau.
 
 Mỗi concept phải là một đoạn mô tả ngắn gọn, sử dụng lối hành văn giàu hình ảnh, dễ hình dung, thể hiện rõ nét cá tính thương hiệu và định hướng thiết kế.
 
-Các concept phải khác biệt rõ rệt về ý tưởng cốt lõi, không chỉ thay đổi vài chi tiết nhỏ.
+Các concept phải khác biệt rõ rệt về ý tưởng cốt lõi, không chỉ thay đổi vài chi tiết nhỏ. Đồng thời trong concept phải ghi đủ các chi tiết về thông tin đầu vào.
 
 Văn phong phải mang tính chuyên nghiệp, truyền cảm hứng, giống như cách một chuyên gia branding thuyết trình ý tưởng cho khách hàng.
 

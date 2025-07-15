@@ -107,6 +107,7 @@ body {
   background-color: #EC881E;
   align-self: flex-end;
   border-color: #EC881E;
+  white-space: pre-wrap;
 }
 
 .bot-msg {
