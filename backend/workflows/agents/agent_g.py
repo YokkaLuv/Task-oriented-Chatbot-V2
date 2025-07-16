@@ -1,64 +1,101 @@
 from services.openai_service import ask_gpt
+from services.db_service import get_session
+from json import dumps
 
-def generate_dalle_prompt(concept: str) -> str:
+def generate_dalle_prompt(concept: str, session_id: str = "") -> str:
     """
-    Agent G: Nhận một concept ngắn (do người dùng chọn), sinh ra prompt chi tiết để dùng với DALL·E.
-    Trả về chuỗi mô tả rõ ràng, hiện đại, có tính hình ảnh cao.
+    Agent G: Nhận concept + dữ liệu thiết kế đầy đủ để sinh prompt chi tiết cho DALL·E.
+    Concept là phần mô tả chọn lọc, còn session chứa thông tin thiết kế và ghi chú bổ sung.
     """
+
+    design_data = {}
+    notes = []
+
+    if session_id:
+        session = get_session(session_id)
+        if session:
+            design_data = session.get("design_data", {})
+            notes = design_data.get("notes", [])
+
+    # Lọc bỏ "notes" khỏi phần JSON chính để không trùng
+    json_part = dumps({k: v for k, v in design_data.items() if k != "notes"}, ensure_ascii=False, indent=2)
+    notes_text = "- " + "\n- ".join(notes) if notes else "(Không có ghi chú bổ sung)"
 
     prompt = f"""
-Bạn là một hệ thống AI tạo hình ảnh chuyên nghiệp sử dụng DALL·E, có hơn 20 năm “kinh nghiệm chuyên môn hóa” trong việc chuyển đổi concept thiết kế thành hình ảnh trực quan, phục vụ cho branding, sản xuất sản phẩm, và trình bày ý tưởng. Bạn có khả năng hiểu sâu về ngữ nghĩa mô tả, phong cách hình ảnh, đặc điểm thiết kế hiện đại, và thể hiện chúng qua hình ảnh chất lượng cao, rõ ràng, có thể dùng để in ấn hoặc thuyết trình.
+C – Context (Ngữ cảnh)
+Bạn là một hệ thống con trong chuỗi xử lý của chatbot AI hỗ trợ thiết kế thương hiệu. Trước đó, người dùng đã lựa chọn một concept thiết kế từ danh sách được tạo bởi chuyên gia sáng tạo. Nhiệm vụ hiện tại là tạo một prompt bằng tiếng Anh để gửi đến DALL·E nhằm tạo ra hình ảnh demo phù hợp với concept được chọn, phục vụ cho mục đích xem trước, trình bày, hoặc in ấn sản phẩm mẫu. Dữ liệu đầu vào bao gồm: mô tả concept, dữ liệu kỹ thuật từ design_data (JSON chuẩn hóa), và ghi chú bổ sung (nếu có).
 
-Bạn đang hoạt động trong hệ thống chatbot thiết kế, nơi bạn sẽ nhận một đoạn mô tả concept thiết kế đã được chuẩn hóa và chọn lọc từ các chuyên gia. Nhiệm vụ của bạn là tạo ra hình ảnh demo có chất lượng tốt, phản ánh trung thực – giàu chi tiết – đúng ý tưởng cốt lõi của concept, nhằm giúp người dùng hình dung rõ hơn về phong cách thiết kế được đề xuất.
+R – Role (Vai trò)
+Bạn là một AI chuyên tạo hình ảnh từ mô tả, được huấn luyện chuyên sâu để sử dụng DALL·E với hiệu quả tối đa. Bạn có hơn 20 năm "kinh nghiệm mô phỏng" trong việc chuyển hóa mô tả thiết kế thành hình ảnh trực quan, với độ chính xác cao về bố cục, màu sắc, phong cách, chất liệu, và cảm quan thẩm mỹ. Bạn không chỉ hiểu ngôn ngữ thiết kế, mà còn giỏi chuyển hóa nó thành ngôn ngữ hình ảnh dành riêng cho DALL·E – súc tích, cụ thể, và tối ưu hóa theo nguyên tắc thị giác.
 
-Hướng dẫn chi tiết:
-Đọc và hiểu toàn bộ đoạn mô tả concept được cung cấp. Concept thường bao gồm sản phẩm chính, đặc trưng thương hiệu, màu sắc, chất liệu, phong cách, và mục tiêu cảm xúc.
+A – Action (Hành động)
+Thực hiện theo quy trình sau:
 
-Tạo prompt đầu vào cho DALL·E từ concept này, chuyển ngôn ngữ mô tả thành ngôn ngữ hình ảnh cụ thể, dùng từ khóa rõ ràng, có tính định hướng cao.
+Đọc kỹ concept đã chọn trong concept, nắm rõ ý tưởng chủ đạo.
 
-Ảnh tạo ra phải mang phong cách hiện đại, tối giản, tinh tế, phù hợp để in ấn hoặc sử dụng trong slide giới thiệu sản phẩm.
+Phân tích chi tiết kỹ thuật trong json_part, bao gồm các trường như product, color, style, application, v.v.
 
-Tránh thêm các yếu tố không được nêu trong concept. Không tự ý sáng tạo ngoài phạm vi. Nếu có từ khóa không rõ, hãy giữ trung lập, không giả định.
+Tích hợp nội dung từ notes_text (nếu có) vào prompt bằng cách chuyển hóa thành từ khóa hoặc hình ảnh minh họa – không lặp lại nguyên văn.
 
-Phong cách thể hiện nên phù hợp với thiết kế thương hiệu: phối màu chính xác, chất liệu sát thực tế, bối cảnh sạch sẽ. Ưu tiên plain or transparent background để dễ sử dụng lại.
+Viết một prompt duy nhất bằng tiếng Anh, phong cách mô tả cụ thể – giống như đang hướng dẫn một họa sĩ AI vẽ chính xác hình ảnh mong muốn.
 
-Yêu cầu đầu ra:
-Chỉ xuất prompt bằng tiếng Anh sẵn sàng để gửi đến DALL·E.
+Phải mô tả rõ:
 
-Không giải thích, không chú thích. Không tạo hình ảnh ngay.
+Tên sản phẩm và định dạng (t-shirt, mug, label, website interface...)
 
-Prompt cần chi tiết, mô tả cụ thể, ngắn gọn, giàu hình ảnh, định hướng rõ ràng về phong cách và bố cục.
+Màu sắc chủ đạo
 
-Dữ liệu đầu vào: "{concept}"
-Hãy tạo prompt DALL·E để vẽ hình minh họa theo concept trên, chính xác, hiện đại, sạch sẽ, đúng ý tưởng. Không giải thích thêm.
+Phong cách thị giác: minimal, clean, soft tone, v.v.
+
+Bố cục (nếu xác định được)
+
+Tuyệt đối không sáng tạo ngoài dữ liệu đầu vào. Nếu một phần không rõ ràng, hãy giữ trung lập và không giả định.
+
+Không tạo ảnh, chỉ xuất prompt. Không thêm phần mở đầu, lời giải thích hoặc nhận xét.
+
+F – Format (Định dạng)
+Trả về chỉ một dòng prompt tiếng Anh, viết liền mạch, chi tiết, giàu hình ảnh, tối ưu cho DALL·E.
+
+Không markdown, không xuống dòng, không thêm bất kỳ ký tự nào ngoài nội dung prompt.
+
+Định dạng tương thích trực tiếp với DALL-E 3.
+
+T – Target Audience (Đối tượng mục tiêu)
+Mô hình sử dụng prompt này là ChatGPT-4o, GPT-4o-mini, hoặc GPT-4o (API mode), dùng để chuẩn bị prompt hình ảnh cho DALL·E hoặc API tương đương. Đầu ra sẽ được sử dụng trong hệ thống frontend phục vụ người dùng thiết kế sản phẩm – thường là khách hàng SME, startup hoặc đội ngũ marketing nội bộ đang thử nghiệm ý tưởng thiết kế.
+
+Dữ liệu đầu vào:
+Concept chính được chọn:
+
+{concept}
+Thông tin thiết kế đã chuẩn hóa:
+
+{json_part}
+Ghi chú bổ sung từ người dùng:
+
+{notes_text}
+Chỉ xuất prompt tiếng Anh gửi cho DALL·E. Không giải thích. Không mở đầu. Không kết luận. Không sinh ảnh.
 """
 
     result = ask_gpt([{"role": "user", "content": prompt}], temperature=0.7)
-
     return result.strip()
 
 
 def extract_concept_index(phrase: str) -> int | None:
     """
     Agent G: Trích số thứ tự concept mà người dùng chọn từ tin nhắn.
-
     Ví dụ: "Tôi chọn concept 3" → return 2 (zero-based)
     """
     prompt = f"""
 Bạn là một hệ thống trích xuất thông tin.
-
 Người dùng sẽ nói về việc chọn một concept thiết kế bằng ngôn ngữ tự nhiên.
-
-Hãy đọc câu nói và trích ra **chỉ số thứ tự** của concept mà họ nhắc đến (dạng số nguyên bắt đầu từ 1).
-
+Hãy đọc câu nói và trích ra **chỉ số thứ tự** của concept mà họ nhắc đến (số nguyên bắt đầu từ 1).
 Nếu không rõ ràng hoặc không có số, trả về null.
-
 Chỉ trả lời bằng số duy nhất (hoặc null). Không giải thích.
 
 Câu: "{phrase}"
 """
-    result = ask_gpt([{"role": "user", "content": prompt}], temperature=0.2)
 
+    result = ask_gpt([{"role": "user", "content": prompt}], temperature=0.2)
     try:
         num = int(result.strip())
         return num - 1 if num > 0 else None
