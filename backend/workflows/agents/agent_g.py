@@ -2,10 +2,11 @@ from services.openai_service import ask_gpt
 from services.db_service import get_session
 from json import dumps
 
-def generate_dalle_prompt(concept: str, session_id: str = "") -> str:
+def generate_dalle_prompt(concept: str | None = None, session_id: str = "") -> str:
     """
-    Agent G: Nhận concept + dữ liệu thiết kế đầy đủ để sinh prompt chi tiết cho DALL·E.
-    Concept là phần mô tả chọn lọc, còn session chứa thông tin thiết kế và ghi chú bổ sung.
+    Agent G: Sinh prompt chi tiết cho DALL·E.
+    Nếu có concept thì dùng kết hợp concept + design_data + notes.
+    Nếu không có concept thì chỉ dùng design_data + notes.
     """
 
     design_data = {}
@@ -17,63 +18,144 @@ def generate_dalle_prompt(concept: str, session_id: str = "") -> str:
             design_data = session.get("design_data", {})
             notes = design_data.get("notes", [])
 
-    # Lọc bỏ "notes" khỏi phần JSON chính để không trùng
     json_part = dumps({k: v for k, v in design_data.items() if k != "notes"}, ensure_ascii=False, indent=2)
     notes_text = "- " + "\n- ".join(notes) if notes else "(Không có ghi chú bổ sung)"
 
-    prompt = f"""
-C – Context (Ngữ cảnh)
-Bạn là một hệ thống con trong chuỗi xử lý của chatbot AI hỗ trợ thiết kế thương hiệu. Trước đó, người dùng đã lựa chọn một concept thiết kế từ danh sách được tạo bởi chuyên gia sáng tạo. Nhiệm vụ hiện tại là tạo một prompt bằng tiếng Anh để gửi đến DALL·E nhằm tạo ra hình ảnh demo phù hợp với concept được chọn, phục vụ cho mục đích xem trước, trình bày, hoặc in ấn sản phẩm mẫu. Dữ liệu đầu vào bao gồm: mô tả concept, dữ liệu kỹ thuật từ design_data (JSON chuẩn hóa), và ghi chú bổ sung (nếu có).
+    # ✅ Prompt template sẽ khác nhau tùy theo việc có concept hay không
+    if concept:
+        prompt = f"""
+C – Context | Bối cảnh
+Bạn là một hệ thống con trong chuỗi xử lý của chatbot AI hỗ trợ thiết kế thương hiệu. Người dùng đã lựa chọn một concept cụ thể. Nhiệm vụ hiện tại của bạn là tạo một prompt bằng tiếng Anh để gửi đến DALL·E, nhằm tạo hình minh hoạ phù hợp với concept này.
+Dữ liệu đầu vào bao gồm:
 
-R – Role (Vai trò)
-Bạn là một AI chuyên tạo hình ảnh từ mô tả, được huấn luyện chuyên sâu để sử dụng DALL·E với hiệu quả tối đa. Bạn có hơn 20 năm "kinh nghiệm mô phỏng" trong việc chuyển hóa mô tả thiết kế thành hình ảnh trực quan, với độ chính xác cao về bố cục, màu sắc, phong cách, chất liệu, và cảm quan thẩm mỹ. Bạn không chỉ hiểu ngôn ngữ thiết kế, mà còn giỏi chuyển hóa nó thành ngôn ngữ hình ảnh dành riêng cho DALL·E – súc tích, cụ thể, và tối ưu hóa theo nguyên tắc thị giác.
+concept: mô tả ý tưởng thiết kế đã chọn
 
-A – Action (Hành động)
-Thực hiện theo quy trình sau:
+design_data: dữ liệu kỹ thuật (màu sắc, chất liệu, kiểu dáng, bố cục, v.v.) ở định dạng JSON
 
-Đọc kỹ concept đã chọn trong concept, nắm rõ ý tưởng chủ đạo.
+notes_text: các ghi chú bổ sung từ người dùng (có thể có hoặc không)
 
-Phân tích chi tiết kỹ thuật trong json_part, bao gồm các trường như product, color, style, application, v.v.
+R – Role | Vai trò
+Bạn là một chuyên gia hàng đầu trong việc chuyển đổi văn bản mô tả thiết kế thành prompt hình ảnh cho mô hình DALL·E. Bạn có kiến thức sâu rộng về:
 
-Tích hợp nội dung từ notes_text (nếu có) vào prompt bằng cách chuyển hóa thành từ khóa hoặc hình ảnh minh họa – không lặp lại nguyên văn.
+Ngôn ngữ mô tả hình ảnh
 
-Viết một prompt duy nhất bằng tiếng Anh, phong cách mô tả cụ thể – giống như đang hướng dẫn một họa sĩ AI vẽ chính xác hình ảnh mong muốn.
+Từ vựng chuyên ngành thiết kế, phối cảnh, bố cục, chất liệu, ánh sáng
 
-Phải mô tả rõ:
+Tối ưu hóa đầu vào để mô hình sinh ảnh tạo ra hình ảnh trực quan, chính xác và đẹp mắt
+Bạn không bịa đặt thông tin. Bạn chỉ diễn đạt lại thông tin đã cung cấp bằng ngôn ngữ mô tả giàu hình ảnh.
 
-Tên sản phẩm và định dạng (t-shirt, mug, label, website interface...)
+A – Action | Hành động
+Phân tích kỹ concept để hiểu chủ đề, phong cách, hoặc thông điệp thị giác.
+
+Trích xuất thông tin từ design_data (JSON) để lấy các thuộc tính
+
+Nếu có notes_text, bạn lồng ghép các yếu tố hợp lý từ phần ghi chú này vào mô tả.
+
+Viết lại toàn bộ thành một prompt tiếng Anh duy nhất, giàu tính hình ảnh và định hướng rõ ràng cho DALL·E.
+
+Giữ giọng văn mô tả trung tính, khách quan; không thêm thắt trí tưởng tượng hay sáng tạo ngoài phạm vi dữ liệu gốc.
+
+Không giải thích lại, không chào hỏi, không định dạng markdown. Chỉ in ra prompt.
+
+F – Format | Định dạng
+Output: Dòng prompt chi tiết bằng tiếng Anh, không markdown, không xuống dòng, không tiêu đề, không giải thích.
+
+Cấu trúc câu nên thiên về mô tả thị giác, bố cục, màu sắc, ánh sáng và chất liệu.
+
+Tránh lặp từ, tránh liệt kê khô khan – hãy viết như đang mô tả cho một nghệ sĩ AI có thể "vẽ lại" chính xác cảnh tượng.
+
+T – Target Audience | Đối tượng sử dụng
+Prompt được sử dụng bởi hệ thống sinh ảnh minh hoạ tự động cho các thiết kế thương hiệu, sản phẩm hoặc chiến dịch marketing.
+
+Đối tượng hưởng lợi: nhà sáng lập startup, marketer nội bộ, đội ngũ sáng tạo đang cần bản vẽ/ảnh mô phỏng nhanh để trình bày ý tưởng hoặc thuyết phục đối tác đầu tư.
+
+Đầu ra này sẽ được đưa trực tiếp vào API DALL·E để sinh ảnh phục vụ các bước tiếp theo trong hệ thống.
+
+📥 Input Template (Biến đầu vào):
+
+Concept:
+{concept}
+
+Thông tin thiết kế (JSON):
+{json_part}
+
+Ghi chú bổ sung (nếu có):
+{notes_text}
+🔒 Chỉ dẫn nghiêm ngặt cho LLM
+Chỉ in ra prompt tiếng Anh gửi cho DALL·E
+
+Không giải thích
+
+Không sinh ảnh
+
+Không mở đầu, không kết luận, không gợi ý thêm
+"""
+    else:
+        prompt = f"""
+C – Context | Bối cảnh
+Bạn là một hệ thống con trong chuỗi xử lý AI của chatbot thiết kế thương hiệu. Trong trường hợp người dùng chưa chọn concept cụ thể, hệ thống cần sinh một prompt tiếng Anh gửi đến DALL·E để tạo ra ảnh minh hoạ sản phẩm theo dữ liệu thiết kế đã có.
+Dữ liệu đầu vào bao gồm:
+
+design_data: thông tin kỹ thuật chuẩn hoá (màu sắc, chất liệu, phong cách, bố cục, loại sản phẩm, v.v.), định dạng JSON.
+
+notes_text: các ghi chú bổ sung từ người dùng, giúp làm rõ hoặc nhấn mạnh một số đặc điểm thị giác quan trọng (nếu có).
+
+R – Role | Vai trò
+Bạn là một chuyên gia hàng đầu về tạo prompt mô tả hình ảnh cho các hệ thống AI như DALL·E. Bạn có:
+
+Hiểu biết sâu sắc về từ vựng thiết kế (design language)
+
+Khả năng dịch dữ liệu kỹ thuật thành mô tả thị giác bằng tiếng Anh
+
+Kỹ năng mô tả chi tiết bố cục, chất liệu, ánh sáng, màu sắc mà không thêm thắt hay sáng tạo ngoài thông tin gốc
+
+A – Action | Hành động
+Đọc và phân tích kỹ design_data dạng JSON – trích xuất các trường quan trọng như product_type, color, material, style, layout, size, v.v.
+
+Nếu có notes_text, kết hợp các mô tả bổ sung từ người dùng vào phần diễn đạt phù hợp.
+
+Viết một dòng prompt tiếng Anh duy nhất, sử dụng ngôn ngữ thị giác phong phú, miêu tả chi tiết:
+
+Loại sản phẩm
 
 Màu sắc chủ đạo
 
-Phong cách thị giác: minimal, clean, soft tone, v.v.
+Chất liệu cấu thành
 
-Bố cục (nếu xác định được)
+Phong cách tổng thể (style)
 
-Tuyệt đối không sáng tạo ngoài dữ liệu đầu vào. Nếu một phần không rõ ràng, hãy giữ trung lập và không giả định.
+Các chi tiết đặc biệt nếu có (dựa trên notes_text)
 
-Không tạo ảnh, chỉ xuất prompt. Không thêm phần mở đầu, lời giải thích hoặc nhận xét.
+Không bịa đặt thêm nội dung không tồn tại. Chỉ sử dụng thông tin đã được cung cấp.
 
-F – Format (Định dạng)
-Trả về chỉ một dòng prompt tiếng Anh, viết liền mạch, chi tiết, giàu hình ảnh, tối ưu cho DALL·E.
+F – Format | Định dạng
+Chỉ trả về một dòng prompt tiếng Anh – không xuống dòng, không giải thích, không đánh dấu markdown.
 
-Không markdown, không xuống dòng, không thêm bất kỳ ký tự nào ngoài nội dung prompt.
+Câu văn cần rõ ràng, hình ảnh hóa tốt, giàu yếu tố mô tả (visual language), theo phong cách hướng dẫn cho nghệ sĩ AI.
 
-Định dạng tương thích trực tiếp với DALL-E 3.
+Tránh cấu trúc danh sách rời rạc – hãy diễn đạt như một mô tả hoàn chỉnh.
 
-T – Target Audience (Đối tượng mục tiêu)
-Mô hình sử dụng prompt này là ChatGPT-4o, GPT-4o-mini, hoặc GPT-4o (API mode), dùng để chuẩn bị prompt hình ảnh cho DALL·E hoặc API tương đương. Đầu ra sẽ được sử dụng trong hệ thống frontend phục vụ người dùng thiết kế sản phẩm – thường là khách hàng SME, startup hoặc đội ngũ marketing nội bộ đang thử nghiệm ý tưởng thiết kế.
+T – Target Audience | Đối tượng sử dụng
+Output được sử dụng bởi giao diện người dùng của hệ thống thiết kế thương hiệu tự động, khi người dùng yêu cầu sinh ảnh minh hoạ trước khi chọn concept.
 
-Dữ liệu đầu vào:
-Concept chính được chọn:
+Người sử dụng cuối cùng có thể là: nhà sáng lập startup, nhân viên marketing, hoặc nhóm sáng tạo muốn hình dung sản phẩm ở giai đoạn phác thảo.
 
-{concept}
-Thông tin thiết kế đã chuẩn hóa:
+Prompt sẽ được sử dụng để gọi API sinh ảnh minh họa thông qua DALL·E, nên cần mô tả chính xác, rõ ràng, giàu hình ảnh nhưng không vượt quá thông tin đã có.
 
+📥 Input Template (Biến đầu vào):
+Thông tin thiết kế (JSON):
 {json_part}
-Ghi chú bổ sung từ người dùng:
 
+Ghi chú bổ sung (nếu có):
 {notes_text}
-Chỉ xuất prompt tiếng Anh gửi cho DALL·E. Không giải thích. Không mở đầu. Không kết luận. Không sinh ảnh.
+🔒 Chỉ dẫn nghiêm ngặt cho LLM
+Chỉ xuất một dòng prompt tiếng Anh gửi cho DALL·E
+
+Không giải thích
+
+Không sinh ảnh
+
+Không mở đầu, không kết luận, không markdown
 """
 
     result = ask_gpt([{"role": "user", "content": prompt}], temperature=0.7)

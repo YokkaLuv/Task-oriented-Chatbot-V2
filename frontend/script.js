@@ -61,8 +61,27 @@ sendButton.addEventListener("click", async () => {
 
 // ✅ Tin nhắn chào khi mở trang
 window.addEventListener("load", () => {
-  const welcome =
-    "Xin chào quý khách! Tôi là trợ lý thiết kế ảo thông minh, tôi sẽ giúp đỡ thiết kế ý tưởng cho quý khách. Xin hãy gửi thông tin bất kỳ để bắt đầu ạ.";
+  const welcome = `
+Xin chào quý khách! Tôi là trợ lý thiết kế ảo thông minh, nhiệm vụ của tôi là ghi nhận và giúp đỡ thiết kế ý tưởng cho quý khách.
+
+***-- Khả năng của tôi --***
+
+Tôi có khả năng làm được những việc như sau:
+- Tôi có thể thu thập thông tin về ý tưởng thiết kế mong muốn của quý khách
+- Tôi sẽ tạo ra vài ý tưởng thiết kế và demo nếu như quý khách yêu cầu và có đủ các thông tin thiết yếu
+
+***-- Lưu ý khi sử dụng --***
+
+Để có thể có được trải nghiệm tốt nhất, xin quý khách vui lòng tuân thủ theo các ý sau:
+- Câu từ rõ nghĩa và dễ hiểu
+- Hãy cung cấp đầy đủ thông tin cần thiết trước khi yêu cầu tạo ý tưởng hay tạo demo
+- Yêu cầu càng chi tiết thì độ chính xác càng cao
+- Tôi chỉ có thể giúp lên ý tưởng tạm thời, để có được sản phẩm chuyên nghiệp và hoàn chỉnh, xin vui lòng liên hệ lại với nhân viên chính thức trong công ty
+
+Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của công ty chúng tôi.
+Để bắt đầu, xin hãy gửi yêu cầu của quý khách để tôi có thể giúp đỡ ạ.
+`;
+
   appendMessage("assistant", welcome);
   chatHistory.push({ role: "assistant", content: welcome });
 });

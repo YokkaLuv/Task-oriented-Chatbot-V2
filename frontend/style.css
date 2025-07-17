@@ -38,7 +38,7 @@ body {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.08);
   overflow: hidden;
-  border: 1px solid #EC881E;
+  border: 1px solid #ffffff;
 }
 
 /* Vùng hiển thị chat */
@@ -82,14 +82,14 @@ body {
   font-size: 1rem;
   font-weight: bold;
   background-color: #303030;
-  color: #EC881E;
-  border: 1px solid #EC881E;
+  color: #ffffff;
+  border: 1px solid #ffffff;
   border-radius: 4px;
   cursor: pointer;
 }
 
 #send-button:hover {
-  background-color: #ffffff;
+  background-color: #EC881E;
 }
 
 /* Tin nhắn */

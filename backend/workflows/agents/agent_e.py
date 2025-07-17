@@ -4,8 +4,8 @@ from workflows.agents import agent_g
 
 def generate_image_from_selected_concept(session_id: str, resolution: str = "1024x1024") -> dict:
     """
-    Agent E: Dựa trên concept đã chọn, sinh ảnh minh hoạ bằng DALL·E.
-    Gọi Agent G để tạo prompt chi tiết, có kết hợp cả concept + design_data + notes.
+    Agent E: Dựa trên concept đã chọn (nếu có), hoặc dữ liệu thiết kế, sinh ảnh minh hoạ bằng DALL·E.
+    Gọi Agent G để tạo prompt chi tiết.
     Lưu URL ảnh vào DB. Trả về dict {"image_url": "..."} nếu thành công.
     """
 
@@ -14,13 +14,20 @@ def generate_image_from_selected_concept(session_id: str, resolution: str = "102
         print(f"[Agent E] ❌ Không tìm thấy session: {session_id}")
         return {"error": "Không tìm thấy phiên thiết kế."}
 
+    design_data = session.get("design_data", {})
+    if not design_data:
+        print(f"[Agent E] ❌ Thiếu dữ liệu thiết kế để tạo ảnh.")
+        return {"error": "Chưa có đủ dữ liệu thiết kế để tạo ảnh."}
+
     concept = session.get("selected_concept")
-    if not concept:
-        print(f"[Agent E] ⚠️ Chưa có concept được chọn.")
-        return {"error": "Bạn cần chọn concept trước khi tạo ảnh minh hoạ."}
 
     try:
-        # ✅ Gọi Agent G để sinh prompt từ concept + session_id
+        # ✅ Nếu có concept → ưu tiên dùng
+        if concept:
+            print("[Agent E] 🧠 Đang dùng concept để sinh prompt.")
+        else:
+            print("[Agent E] 🔄 Không có concept, sẽ dùng dữ liệu thiết kế để sinh prompt.")
+
         dalle_prompt = agent_g.generate_dalle_prompt(concept=concept, session_id=session_id)
         print(f"[Agent E] 🎯 Prompt gửi tới DALL·E:\n{dalle_prompt}\n")
 
