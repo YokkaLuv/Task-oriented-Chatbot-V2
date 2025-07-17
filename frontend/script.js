@@ -64,13 +64,13 @@ window.addEventListener("load", () => {
   const welcome = `
 Xin chào quý khách! Tôi là trợ lý thiết kế ảo thông minh, nhiệm vụ của tôi là ghi nhận và giúp đỡ thiết kế ý tưởng cho quý khách.
 
-***-- Khả năng của tôi --***
+**-- Khả năng của tôi --**
 
 Tôi có khả năng làm được những việc như sau:
 - Tôi có thể thu thập thông tin về ý tưởng thiết kế mong muốn của quý khách
-- Tôi sẽ tạo ra vài ý tưởng thiết kế và demo nếu như quý khách yêu cầu và có đủ các thông tin thiết yếu
+- Tôi sẽ tạo ra vài ý tưởng thiết kế và demo nếu như quý khách yêu cầu trực tiếp và có đủ các thông tin thiết yếu
 
-***-- Lưu ý khi sử dụng --***
+**-- Lưu ý khi sử dụng --**
 
 Để có thể có được trải nghiệm tốt nhất, xin quý khách vui lòng tuân thủ theo các ý sau:
 - Câu từ rõ nghĩa và dễ hiểu
@@ -116,3 +116,9 @@ function appendImage(url) {
   chatBox.appendChild(img);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
+
+// Toggle sidebar trên mobile
+document.getElementById("menu-toggle").addEventListener("click", () => {
+  const sidebar = document.getElementById("sidebar");
+  sidebar.classList.toggle("active");
+});
