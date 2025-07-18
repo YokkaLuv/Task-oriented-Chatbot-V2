@@ -5,45 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trợ lý thiết kế ảo</title>
   <link rel="shortcut icon" href="https://lapphuong.com/img/favicon.svg" type="image/x-icon">
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
 
   <!-- Nút menu toggle cho mobile -->
-  <button class="menu-button" id="menu-toggle">☰</button>
+  <button class="menu-button left" id="toggle-left">☰</button>
+  <button class="menu-button right" id="toggle-right">ℹ️</button>
 
-  <!-- Sidebar hướng dẫn -->
-  <div class="sidebar" id="sidebar">
-    <h2> Hướng dẫn sử dụng</h2>
-    <ul>
-      <li> Khuyến khích tin nhắn đầy đủ ngữ nghĩa, càng dễ hiểu càng tốt.</li>
-      <li> Hãy cung cấp thông tin càng chi tiết càng tốt.</li>
-      <li> Bạn có thể yêu cầu tạo concept hoặc demo khi đã đủ thông tin cần thiết.</li>
-      <li> Các thông tin cần có bao gồm: <br> <br>
-              - Tên sản phẩm<br>
-              - Màu của sản phẩm<br>
-              - Phong cách mong muốn
-      </li>
-    </ul>
-  </div>
 
-  <!-- Vùng chính của chatbot -->
-  <div class="chat-wrapper">
-    <h1 class="chat-title">Trợ lý thiết kế ảo</h1>
+  <!-- Bọc toàn bộ layout -->
+  <div class="flex-container">
 
-    <div class="chat-container">
-      <div id="chat-box" class="chat-box"></div>
-
-      <div class="input-group">
-        <textarea id="user-input" placeholder="Soạn tin nhắn tại đây..." autocomplete="off" rows="2"></textarea>
-        <button id="send-button">Gửi</button>
-      </div>
+    <!-- Sidebar trái: Hướng dẫn sử dụng -->
+    <div class="sidebar sidebar-left" id="sidebar-left">
+      <h2>Hướng dẫn sử dụng</h2>
+      <ul>
+        <li>Khuyến khích tin nhắn đầy đủ ngữ nghĩa, càng dễ hiểu càng tốt.</li>
+        <li>Hãy cung cấp thông tin càng chi tiết càng tốt.</li>
+        <li>Quý khách có thể yêu cầu tạo concept hoặc demo khi đã đủ thông tin cần thiết.</li>
+        <li>
+          Các thông tin cần có bao gồm: <br><br>
+          - Tên sản phẩm<br>
+          - Màu của sản phẩm<br>
+          - Phong cách mong muốn
+        </li>
+        <li>Khi quý khách gửi thông tin đầu vào thành công, quý khách có thể theo dõi xem trợ lý đã ghi nhận được gì ở thanh bên phải.</li>
+      </ul>
     </div>
 
-    <p class="chat-footer">Phiên bản thử nghiệm</p>
+    <!-- Nội dung chính -->
+    <div class="chat-wrapper">
+      <h1 class="chat-title">Trợ lý thiết kế ảo</h1>
+
+      <div class="chat-container">
+        <div id="chat-box" class="chat-box"></div>
+
+        <div class="input-group">
+          <textarea id="user-input" placeholder="Soạn tin nhắn tại đây..." autocomplete="off" rows="2"></textarea>
+          <button id="send-button">Gửi</button>
+        </div>
+      </div>
+
+      <p class="chat-footer">Phiên bản thử nghiệm</p>
+    </div>
+
+    <!-- Sidebar phải: Thông tin đã nhập -->
+    <div class="sidebar sidebar-right" id="sidebar-right">
+      <h2>Thông tin thiết kế</h2>
+      <div id="design-info" class="design-info-block">{}</div>
+    </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="script.js"></script>
+  <script src="/static/script.js"></script>
 </body>
 </html>

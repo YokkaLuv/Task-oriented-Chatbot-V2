@@ -8,7 +8,6 @@ from workflows.agents import (
 )
 from services.db_service import store_selected_concept, get_session
 
-
 def dispatch_actions(actions: list[dict], session_id: str) -> list[dict]:
     """
     Xử lý danh sách các hành động đã được gán intent và sắp xếp theo độ ưu tiên.
@@ -23,6 +22,11 @@ def dispatch_actions(actions: list[dict], session_id: str) -> list[dict]:
         match intent:
             case Intent.PROVIDE_INFO:
                 result_b = agent_b.extract_and_store_info(phrase, session_id)
+                if result_b is not None:
+                    results.append(result_b)
+
+            case Intent.REMOVE_INFO:
+                result_b = agent_b.remove_info(phrase, session_id)
                 if result_b is not None:
                     results.append(result_b)
 

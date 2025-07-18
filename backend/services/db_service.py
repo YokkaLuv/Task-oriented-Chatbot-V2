@@ -161,3 +161,34 @@ def remove_design_fields(session_id: str, fields: list[str]):
             {"$set": unset_ops}
         )
         print(f"[DB Service] ✅ Đã xoá field: {list(unset_ops.keys())}")
+
+def remove_specific_field_values(session_id: str, field: str, value: str):
+    """
+    Xoá một giá trị cụ thể trong các field dạng list của design_data.
+    Ví dụ: xoá 'đỏ' khỏi color.
+    """
+    if field not in DEFAULT_DESIGN_DATA:
+        print(f"[DB Service] ❌ Field không hợp lệ: {field}")
+        return
+
+    if not isinstance(DEFAULT_DESIGN_DATA[field], list):
+        print(f"[DB Service] ⚠️ Field '{field}' không phải dạng list, không thể xoá giá trị cụ thể.")
+        return
+
+    session = get_session(session_id)
+    if not session:
+        print(f"[DB Service] ❌ Không tìm thấy session: {session_id}")
+        return
+
+    current_values = session.get("design_data", {}).get(field, [])
+    if not isinstance(current_values, list):
+        print(f"[DB Service] ⚠️ Field '{field}' hiện không phải list.")
+        return
+
+    new_values = [v for v in current_values if str(v).strip().lower() != value.strip().lower()]
+    collection.update_one(
+        {"_id": session_id},
+        {"$set": {f"design_data.{field}": new_values}}
+    )
+    print(f"[DB Service] 🧹 Đã xoá '{value}' khỏi '{field}' → Còn lại: {new_values}")
+

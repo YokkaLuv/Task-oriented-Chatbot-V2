@@ -1,29 +1,28 @@
 const chatBox = document.getElementById("chat-box");
 const inputField = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
+const designInfoBox = document.getElementById("design-info");
 
 let chatHistory = [];
 let collectedData = {};
-
-// ✅ Luôn tạo session ID mới khi load trang
 const sessionId = crypto.randomUUID();
 const BASE_URL = window.location.origin;
 
-// ✅ Gửi tin nhắn khi Enter (trừ khi giữ Shift để xuống dòng)
+// Gửi khi Enter (trừ Shift)
 inputField.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault(); // Ngăn xuống dòng mặc định
+    e.preventDefault();
     sendButton.click();
   }
 });
 
-// ✅ Tự động co giãn chiều cao textarea
+// Auto height textarea
 inputField.addEventListener("input", () => {
   inputField.style.height = "auto";
   inputField.style.height = inputField.scrollHeight + "px";
 });
 
-// ✅ Gửi tin nhắn khi bấm nút
+// Gửi tin nhắn
 sendButton.addEventListener("click", async () => {
   const userMessage = inputField.value.trim();
   if (!userMessage) return;
@@ -31,36 +30,41 @@ sendButton.addEventListener("click", async () => {
   appendMessage("user", userMessage);
   chatHistory.push({ role: "user", content: userMessage });
   inputField.value = "";
-  inputField.style.height = "38px"; // reset chiều cao
+  inputField.style.height = "38px";
 
-  const response = await fetch(`${BASE_URL}/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      session_id: sessionId,
-      message: userMessage,
-      history: chatHistory,
-      design_data: collectedData,
-    }),
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: sessionId,
+        message: userMessage,
+        history: chatHistory,
+        design_data: collectedData,
+      }),
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  const assistantReply = data.reply || "Xin lỗi, tôi chưa xử lý được yêu cầu.";
-  chatHistory.push({ role: "assistant", content: assistantReply });
-  appendMessage("assistant", assistantReply);
+    const assistantReply = data.reply || "Xin lỗi, tôi chưa xử lý được yêu cầu.";
+    chatHistory.push({ role: "assistant", content: assistantReply });
+    appendMessage("assistant", assistantReply);
 
-  if (data.design_data) {
-    collectedData = { ...collectedData, ...data.design_data };
-  }
+    if (data.image_url) {
+      appendImage(data.image_url);
+    }
 
-  if (data.image_url) {
-    appendImage(data.image_url);
+    // ❗️Luôn fetch lại design_data mới nhất từ server
+    await fetchDesignDataAndUpdateSidebar();
+
+  } catch (error) {
+    console.error("Lỗi khi gọi API:", error);
+    appendMessage("assistant", "❌ Có lỗi xảy ra khi kết nối đến máy chủ.");
   }
 });
 
-// ✅ Tin nhắn chào khi mở trang
-window.addEventListener("load", () => {
+// Tin nhắn chào + fetch design_data ban đầu
+window.addEventListener("load", async () => {
   const welcome = `
 Xin chào quý khách! Tôi là trợ lý thiết kế ảo thông minh, nhiệm vụ của tôi là ghi nhận và giúp đỡ thiết kế ý tưởng cho quý khách.
 
@@ -80,21 +84,22 @@ Tôi có khả năng làm được những việc như sau:
 
 Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của công ty chúng tôi.
 Để bắt đầu, xin hãy gửi yêu cầu của quý khách để tôi có thể giúp đỡ ạ.
-`;
-
+  `;
   appendMessage("assistant", welcome);
   chatHistory.push({ role: "assistant", content: welcome });
+
+  // 🆕 Load thông tin thiết kế nếu có
+  await fetchDesignDataAndUpdateSidebar();
 });
 
-// ✅ Hiển thị tin nhắn
+// Hiển thị tin nhắn
 function appendMessage(role, text) {
   const msg = document.createElement("div");
   msg.className = role === "user" ? "user-msg" : "bot-msg";
 
   if (role === "assistant") {
-    msg.innerHTML = marked.parse(text); // hỗ trợ markdown
+    msg.innerHTML = marked.parse(text);
   } else {
-    // giữ xuống dòng và escape HTML cơ bản
     msg.innerHTML = text
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -106,7 +111,7 @@ function appendMessage(role, text) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ✅ Hiển thị ảnh
+// Hiển thị ảnh
 function appendImage(url) {
   const img = document.createElement("img");
   img.src = url;
@@ -117,8 +122,67 @@ function appendImage(url) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Toggle sidebar trên mobile
-document.getElementById("menu-toggle").addEventListener("click", () => {
-  const sidebar = document.getElementById("sidebar");
-  sidebar.classList.toggle("active");
+// ✅ Cập nhật lại thông tin bên phải
+async function fetchDesignDataAndUpdateSidebar() {
+  try {
+    const response = await fetch(`${BASE_URL}/design_data/${sessionId}`);
+    const result = await response.json();
+
+    if (result && typeof result === "object") {
+      collectedData = result;
+      updateDesignInfoBox(result);
+    }
+  } catch (err) {
+    console.error("❌ Không thể lấy thông tin thiết kế:", err);
+  }
+}
+
+// ✅ Render card UI thay cho JSON thô
+function updateDesignInfoBox(data) {
+  try {
+    let html = "";
+
+    for (const [key, value] of Object.entries(data)) {
+      const readableKey = convertKeyToLabel(key);
+      const readableValue = Array.isArray(value) ? value.join(", ") : value;
+
+      html += `
+        <div class="info-card">
+          <h3>${readableKey}</h3>
+          <p>${readableValue}</p>
+        </div>
+      `;
+    }
+
+    designInfoBox.innerHTML = html || "<p>Chưa có thông tin nào được ghi nhận.</p>";
+  } catch {
+    designInfoBox.innerHTML = "<p>Không thể hiển thị dữ liệu.</p>";
+  }
+}
+
+// ✅ Mapping key kỹ thuật sang nhãn tiếng Việt
+function convertKeyToLabel(key) {
+  const map = {
+    product: "Sản phẩm thiết kế",
+    color: "Màu sắc",
+    style: "Phong cách",
+    notes: "Ghi chú thêm",
+    company: "Doanh nghiệp (nếu có)",
+    selected_concept: "Ý tưởng đã chọn",
+    // Thêm các field khác nếu cần
+  };
+  return map[key] || key;
+}
+
+// Toggle menu bên trái (mobile)
+document.getElementById("toggle-left").addEventListener("click", () => {
+  document.getElementById("sidebar-left").classList.toggle("active");
 });
+
+// Toggle menu bên phải (mobile)
+const infoToggleButton = document.getElementById("toggle-right");
+if (infoToggleButton) {
+  infoToggleButton.addEventListener("click", () => {
+    document.querySelector(".sidebar-right").classList.toggle("active");
+  });
+};

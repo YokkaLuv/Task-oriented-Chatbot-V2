@@ -10,19 +10,23 @@ body {
   overflow-x: hidden;
 }
 
-/* Sidebar */
+/* ✅ Flex container bọc layout */
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ✅ Sidebar base */
 .sidebar {
   width: 250px;
   background-color: #2c2c2c;
   color: white;
   padding: 100px 20px;
   box-sizing: border-box;
-  position: fixed;
-  top: 0;
-  left: 0;
   height: 100vh;
   overflow-y: auto;
-  transition: transform 0.3s ease;
   z-index: 1000;
 }
 
@@ -42,15 +46,46 @@ body {
   font-size: 0.95rem;
 }
 
+/* ✅ Sidebar trái */
+.sidebar-left {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* ✅ Sidebar phải */
+.sidebar-right {
+  position: fixed;
+  top: 0;
+  right: 0;
+  background-color: #1e1e1e;
+  padding: 100px 20px;
+  border-left: 1px solid #444;
+}
+
+.design-info-block {
+  background-color: #181818;
+  color: #EC881E;
+  font-family: monospace;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  border: 1px solid #444;
+  padding: 12px;
+  border-radius: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
 /* Chat wrapper */
 .chat-wrapper {
   flex: 1;
-  margin-left: 250px;
+  margin-inline: auto;              /* Căn giữa */
   padding: 40px 16px;
   max-width: 720px;
   width: 100%;
   box-sizing: border-box;
 }
+
 
 /* Tiêu đề */
 .chat-title {
@@ -200,12 +235,11 @@ body {
   margin-top: 12px;
 }
 
-/* Nút menu toggle cho mobile */
+/* Nút menu toggle */
 .menu-button {
   display: none;
   position: fixed;
   top: 16px;
-  left: 16px;
   z-index: 1100;
   background-color: #EC881E;
   color: white;
@@ -216,19 +250,61 @@ body {
   cursor: pointer;
 }
 
-/* Responsive cho mobile */
-@media screen and (max-width: 768px) {
-  .sidebar {
+/* Nút trái */
+.menu-button.left {
+  left: 16px;
+}
+
+/* Nút phải */
+.menu-button.right {
+  right: 16px;
+}
+
+/* ✅ Responsive: Mobile view */
+@media screen and (max-width: 1200px) {
+  /* Sidebar trái mobile */
+  .sidebar-left {
     transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background-color: #2c2c2c;
+    padding: 100px 20px;
+    overflow-y: auto;
+    z-index: 1000;
   }
 
-  .sidebar.active {
+  .sidebar-left.active {
+    transform: translateX(0);
+  }
+
+  /* Sidebar phải mobile */
+  .sidebar-right {
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background-color: #1e1e1e;
+    padding: 100px 20px;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+
+  .sidebar-right.active {
     transform: translateX(0);
   }
 
   .chat-wrapper {
     margin-left: 0;
+    margin-right: 0;
     padding: 80px 12px 20px;
+    max-width: 100%;
   }
 
   .menu-button {
@@ -250,4 +326,36 @@ body {
     border-radius: 0;
     box-shadow: none;
   }
+}
+/* ✅ Card UI cho design info */
+.design-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #181818;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+/* Thẻ từng thông tin */
+.info-card {
+  background-color: #2c2c2c;
+  border: 1px solid #444;
+  border-left: 4px solid #EC881E;
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+.info-card h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  color: #EC881E;
+}
+
+.info-card p {
+  margin: 0;
+  color: #fff;
+  font-size: 0.95rem;
 }

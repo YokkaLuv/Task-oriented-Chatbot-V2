@@ -1,12 +1,12 @@
 from services.db_service import get_session, store_image_url
 from services.openai_service import generate_image
 from workflows.agents import agent_g
+from schemas.design_schema import DEFAULT_DESIGN_DATA
 
 def generate_image_from_selected_concept(session_id: str, resolution: str = "1024x1024") -> dict:
     """
-    Agent E: Dựa trên concept đã chọn (nếu có), hoặc dữ liệu thiết kế, sinh ảnh minh hoạ bằng DALL·E.
-    Gọi Agent G để tạo prompt chi tiết.
-    Lưu URL ảnh vào DB. Trả về dict {"image_url": "..."} nếu thành công.
+    Agent E: Sinh ảnh minh hoạ từ concept đã chọn hoặc chỉ từ dữ liệu thiết kế.
+    Kiểm tra xem thiết kế có đủ thông tin chưa trước khi tạo prompt.
     """
 
     session = get_session(session_id)
@@ -15,20 +15,23 @@ def generate_image_from_selected_concept(session_id: str, resolution: str = "102
         return {"error": "Không tìm thấy phiên thiết kế."}
 
     design_data = session.get("design_data", {})
-    if not design_data:
-        print(f"[Agent E] ❌ Thiếu dữ liệu thiết kế để tạo ảnh.")
-        return {"error": "Chưa có đủ dữ liệu thiết kế để tạo ảnh."}
+    concept = session.get("selected_concept", None)
 
-    concept = session.get("selected_concept")
+    # ✅ Kiểm tra thiếu thông tin (trừ notes)
+    missing_fields = [
+        field for field in DEFAULT_DESIGN_DATA
+        if field != "notes" and not design_data.get(field)
+    ]
 
+    if missing_fields:
+        print(f"[Agent E] ⚠️ Thiếu thông tin thiết kế: {missing_fields}")
+        return {
+            "error": f"Không thể tạo ảnh vì thiếu thông tin: {', '.join(missing_fields)}"
+        }
+
+    # ✅ Dù có concept hay không, vẫn tạo prompt từ dữ liệu + concept nếu có
     try:
-        # ✅ Nếu có concept → ưu tiên dùng
-        if concept:
-            print("[Agent E] 🧠 Đang dùng concept để sinh prompt.")
-        else:
-            print("[Agent E] 🔄 Không có concept, sẽ dùng dữ liệu thiết kế để sinh prompt.")
-
-        dalle_prompt = agent_g.generate_dalle_prompt(concept=concept, session_id=session_id)
+        dalle_prompt = agent_g.generate_dalle_prompt(concept=concept or "", session_id=session_id)
         print(f"[Agent E] 🎯 Prompt gửi tới DALL·E:\n{dalle_prompt}\n")
 
         url = generate_image(prompt=dalle_prompt, size=resolution)

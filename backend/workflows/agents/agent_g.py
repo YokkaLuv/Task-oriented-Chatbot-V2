@@ -135,6 +135,8 @@ Câu văn cần rõ ràng, hình ảnh hóa tốt, giàu yếu tố mô tả (vi
 
 Tránh cấu trúc danh sách rời rạc – hãy diễn đạt như một mô tả hoàn chỉnh.
 
+Cố gắng hướng tới hình ảnh càng thực tế càng tốt, như thể là hình ảnh thực tế ngoài đời.
+
 T – Target Audience | Đối tượng sử dụng
 Output được sử dụng bởi giao diện người dùng của hệ thống thiết kế thương hiệu tự động, khi người dùng yêu cầu sinh ảnh minh hoạ trước khi chọn concept.
 
