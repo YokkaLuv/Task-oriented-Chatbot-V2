@@ -54,7 +54,6 @@ sendButton.addEventListener("click", async () => {
       appendImage(data.image_url);
     }
 
-    // ❗️Luôn fetch lại design_data mới nhất từ server
     await fetchDesignDataAndUpdateSidebar();
 
   } catch (error) {
@@ -88,7 +87,6 @@ Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của công 
   appendMessage("assistant", welcome);
   chatHistory.push({ role: "assistant", content: welcome });
 
-  // 🆕 Load thông tin thiết kế nếu có
   await fetchDesignDataAndUpdateSidebar();
 });
 
@@ -99,6 +97,14 @@ function appendMessage(role, text) {
 
   if (role === "assistant") {
     msg.innerHTML = marked.parse(text);
+
+    // ✅ Gắn target="_blank" cho tất cả link
+    const links = msg.querySelectorAll("a");
+    links.forEach(link => {
+      link.setAttribute("target", "_blank");
+      link.setAttribute("rel", "noopener noreferrer");
+    });
+
   } else {
     msg.innerHTML = text
       .replace(/&/g, "&amp;")
@@ -185,4 +191,4 @@ if (infoToggleButton) {
   infoToggleButton.addEventListener("click", () => {
     document.querySelector(".sidebar-right").classList.toggle("active");
   });
-};
+}

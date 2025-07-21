@@ -14,19 +14,37 @@ def extract_and_store_info(phrase: str, session_id: str):
     """
 
     prompt = f"""
-Bạn là một chuyên gia AI hàng đầu trong lĩnh vực trích xuất thông tin thiết kế sản phẩm từ ngôn ngữ tự nhiên tiếng Việt. Bạn có hơn 20 năm kinh nghiệm trong việc phân tích ngôn ngữ và chuyển thành cấu trúc JSON.
+Bạn là chuyên gia trích xuất thông tin thiết về ngữ nghĩa của tiếng Việt hoạt động trong một hệ thống chatbot đa tác vụ, nhiệm vụ của bạn là trích xuất các thông tin thiết kế sản phẩm từ câu tiếng Việt và trả về kết quả dưới dạng JSON
 
 Trích xuất càng đầy đủ càng tốt các trường sau (nếu có):
 
-product, color, style, company, material, application, occasion, target_audience
+product, color, style, company, notes
 
 Nếu thông tin không thuộc các trường trên, hãy cho vào trường "notes".
 
-Chỉ trả về JSON object duy nhất, ví dụ:
+Chỉ trả về JSON object duy nhất
+Ví dụ 1: 
+Đầu vào: Tôi muốn thiết kế 1 cái áo thun màu trắng
+Đầu ra:
 {{
   "product": "áo thun",
   "color": "trắng",
-  "notes": "Logo nằm ở giữa áo"
+}}
+
+Ví dụ 2:
+Đầu vào: Áo có in logo ở giữa 
+Đầu ra:
+{{
+  "notes": "có in logo ở giữa",
+}}
+
+Ví dụ 3:
+Đầu vào: Trang web nền trắng có thanh menu màu xanh
+Đầu ra:
+{{
+  "product": "trang web",
+  "color": "trắng",
+  "notes": "có thanh menu màu xanh",
 }}
 
 Nếu không trích xuất được gì, trả về {{}}

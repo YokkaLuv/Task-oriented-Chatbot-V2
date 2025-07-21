@@ -7,37 +7,39 @@ def split_message_into_phrases(message: str) -> list[str]:
     Sử dụng prompt chuyên gia xử lý ngôn ngữ theo mô hình chuẩn phân tích.
     """
     prompt = f"""
-Bạn là một chuyên gia hàng đầu thế giới về xử lý ngôn ngữ tự nhiên (NLP), với hơn 20 năm kinh nghiệm trong việc phân tích ngữ nghĩa câu văn tiếng Việt và xây dựng hệ thống AI phân tích yêu cầu người dùng. Bạn hiểu rõ cấu trúc câu, ý nghĩa ngôn ngữ tiềm ẩn và có khả năng tách biệt các đơn vị ý nghĩa độc lập một cách chính xác, không suy diễn, không làm biến dạng nội dung gốc.
+Bạn là một chuyên gia phân tích ngôn ngữ tiếng Việt hoạt động trong một hệ thống chatbot đa tác vụ, bạn có nhiệm vụ chia nhỏ đoạn tin nhắn của người dùng thành các đơn vị thông tin cụ thể, có liên kết, gọi là "fragment". Mỗi fragment phải:
 
-Bạn đang được giao nhiệm vụ phân tích một tin nhắn đầu vào từ người dùng để phục vụ cho một hệ thống chatbot đa tác vụ. Mục tiêu là chia nhỏ tin nhắn thành từng phần thông tin cụ thể – gọi là "fragment" – nhằm giúp các agent chuyên biệt xử lý từng ý riêng biệt. Việc phân mảnh chính xác là nền tảng để trích xuất yêu cầu, phân tích ý định, và phản hồi phù hợp.
+- Là một ý riêng biệt, có thể xử lý độc lập.
+- Không thêm nội dung, có thể tái diễn giải nhẹ.
+- Phải giữ nguyên ý nghĩa gốc, kể cả khi thiếu chủ ngữ hoặc dấu câu.
+- Trường hợp văn bản mơ hồ hoặc không hoàn chỉnh, vẫn phải giữ lại.
+- Lưu ý với các câu dài khi fragment này có liên kết với fragment kia, hãy kết hợp nó thành một.
 
-Hãy thực hiện các bước sau một cách tuần tự và chính xác:
+---
 
-Nhận đầu vào là một đoạn tin nhắn bất kỳ từ người dùng cuối.
+**Đầu vào:**
 
-Phân tích đoạn văn bản và chia thành các message fragment – mỗi fragment là một đơn vị thông tin cụ thể, độc lập, có thể xử lý được.
+Một đoạn tin nhắn tiếng Việt của người dùng. Ví dụ:
 
-Giữ nguyên ngữ nghĩa gốc của từng phần. Không diễn giải, không tái viết.
+> "Tôi muốn thiết kế logo cho shop mỹ phẩm, làm thêm banner nếu được. Banner có màu nâu nhạt. Tạo ý tưởng và demo cho tôi đi."
 
-Nếu một câu chứa nhiều ý, hãy tách từng ý thành fragment riêng biệt.
+---
 
-Nếu có phần lặp lại, mơ hồ hoặc thiếu rõ ràng, vẫn tách ra, để xử lý ở bước sau.
+**Đầu ra mong muốn (dạng danh sách):**
 
-Không thực hiện phân tích, đánh giá hay đưa ra suy luận. Chỉ liệt kê các fragment.
+1. Tôi muốn thiết kế logo cho shop mỹ phẩm  
+2. Làm thêm banner nếu được. Banner có màu nâu nhạt.
+3. Tạo ý tưởng
+4. Tạo demo cho tôi đi
 
-Đầu ra phải được trình bày dưới dạng danh sách có đánh số thứ tự, như sau:
-
-1. [fragment 1]  
-2. [fragment 2]  
-3. [fragment 3]  
-...
-Không thêm tiêu đề, mô tả, hay chú thích ngoài danh sách.
-
-Tin nhắn đầu vào có thể đến từ người dùng nói tiếng Việt, đôi khi không đúng chuẩn ngữ pháp hoặc thiếu dấu câu. Hãy xử lý một cách chính xác và toàn diện nhất có thể.
+---
 
 Bây giờ, hãy phân mảnh đoạn tin nhắn sau:
 
-\"{message}\"
+"{message}"
+
+Trả lời chỉ với danh sách fragment. Không thêm mô tả, không giải thích, không kết luận.
+
 """
 
     raw_output = ask_gpt([{"role": "user", "content": prompt}], temperature=0.3)
