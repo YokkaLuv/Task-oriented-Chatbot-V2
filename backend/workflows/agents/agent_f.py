@@ -103,7 +103,6 @@ Bây giờ, hãy tạo ra phản hồi tương ứng. Không chú thích thêm. 
 
     reply = ask_gpt([{"role": "user", "content": prompt}], temperature=0.5).strip()
 
-    # Gắn concept (nếu có) vào cuối reply luôn
     if merged["concepts"]:
         concept_text = "\n\n" + "\n\n".join(merged["concepts"])
         reply += f"\n\n---\n**Các ý tưởng thiết kế:**\n{concept_text}"

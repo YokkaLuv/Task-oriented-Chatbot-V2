@@ -12,7 +12,6 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 DEFAULT_CHAT_MODEL = os.getenv("OPENAI_API_MODEL", "gpt-4o-mini")
 DEFAULT_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "dall-e-3")
 
-# System prompt mặc định để giữ consistency
 SYSTEM_PROMPT = (
     "Bạn là một trợ lý thiết kế thông minh, nhiệm vụ là hiểu, phân tích và hỗ trợ quy trình thiết kế sản phẩm."
 )
@@ -30,10 +29,9 @@ def ask_gpt(messages: list[dict], model: str = DEFAULT_CHAT_MODEL, temperature: 
     )
     return response.choices[0].message.content.strip()
 
-def ask_gpt_json(messages: list[dict], model: str = "gpt-4o", temperature: float = 0.2):
+def ask_gpt_json(messages: list[dict], model: str = DEFAULT_CHAT_MODEL, temperature: float = 0.2):
     raw = ask_gpt(messages, model=model, temperature=temperature)
 
-    # 💥 Xử lý markdown code block: loại bỏ ```json ... ```
     if "```" in raw:
         raw = re.sub(r"```[a-zA-Z]*\n?", "", raw).strip()
     

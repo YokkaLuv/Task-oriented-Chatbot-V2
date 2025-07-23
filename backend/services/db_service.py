@@ -12,6 +12,7 @@ COLLECTION_NAME = os.getenv("COLLECTION_NAME", "sessions")
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
+chatlog_collection = db["chatlogs"]
 
 def init_session(session_id: str):
     collection.update_one(
@@ -192,3 +193,35 @@ def remove_specific_field_values(session_id: str, field: str, value: str):
     )
     print(f"[DB Service] 🧹 Đã xoá '{value}' khỏi '{field}' → Còn lại: {new_values}")
 
+def append_chatlog(session_id: str, message: dict):
+    """
+    Ghi một message vào chatlog của session (không có timestamp).
+    Message có dạng: {"role": "user" | "assistant", "content": "..."}
+    """
+    result = chatlog_collection.find_one({"session_id": session_id})
+    
+    if result:
+        chatlog_collection.update_one(
+            {"session_id": session_id},
+            {"$push": {"chat_history": message}}
+        )
+    else:
+        chatlog_collection.insert_one({
+            "session_id": session_id,
+            "chat_history": [message]
+        })
+
+
+def get_chatlog(session_id: str) -> list:
+    """
+    Truy xuất toàn bộ chatlog của session.
+    Trả về list các message: [{"role": ..., "content": ...}, ...]
+    """
+    doc = chatlog_collection.find_one({"session_id": session_id})
+    return doc["chat_history"] if doc and "chat_history" in doc else []
+
+def append_evaluation_feedback(session_id: str, feedback: str):
+    collection.update_one(
+        {"_id": session_id},
+        {"$push": {"evaluation_feedback": feedback}}
+    )

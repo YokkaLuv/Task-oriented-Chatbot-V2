@@ -24,11 +24,12 @@ Nếu thông tin không thuộc các trường trên, hãy cho vào trường "n
 
 Chỉ trả về JSON object duy nhất
 Ví dụ 1: 
-Đầu vào: Tôi muốn thiết kế 1 cái áo thun màu trắng
+Đầu vào: Tôi muốn thiết kế 1 cái áo thun màu có phong cách trẻ trung
 Đầu ra:
 {{
   "product": "áo thun",
   "color": "trắng",
+  "style": "trẻ trung",
 }}
 
 Ví dụ 2:
@@ -45,6 +46,13 @@ Ví dụ 3:
   "product": "trang web",
   "color": "trắng",
   "notes": "có thanh menu màu xanh",
+}}
+
+Ví dụ 4:
+Đầu vào: Phong cách mới lạ
+Đầu ra:
+{{
+  "style": "mới lạ",
 }}
 
 Nếu không trích xuất được gì, trả về {{}}

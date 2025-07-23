@@ -44,7 +44,6 @@ Trả lời chỉ với danh sách fragment. Không thêm mô tả, không giả
 
     raw_output = ask_gpt([{"role": "user", "content": prompt}], temperature=0.3)
 
-    # Parse từng dòng dạng "1. nội dung"
     fragments = []
     for line in raw_output.splitlines():
         match = re.match(r"^\s*\d+\.\s+(.*)", line.strip())
