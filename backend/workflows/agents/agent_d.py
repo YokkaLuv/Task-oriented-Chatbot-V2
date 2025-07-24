@@ -1,5 +1,5 @@
 from services.openai_service import ask_gpt
-from services.db_service import get_session, store_concepts
+from services.db_service import get_session, store_concepts, get_last_feedback
 from schemas.design_schema import DEFAULT_DESIGN_DATA
 import re
 from json import dumps
@@ -25,21 +25,22 @@ def generate_concepts(session_id: str, num_concepts: int = 5) -> dict:
         field for field in DEFAULT_DESIGN_DATA
         if field != "notes" and not design_data.get(field)
     ]
-
     if missing:
         print(f"[Agent D] ❌ Thiếu thông tin bắt buộc: {missing}")
         return {"error": f"Chưa đủ dữ liệu để tạo concept. Thiếu: {', '.join(missing)}."}
 
-    # Chuẩn bị dữ liệu
+    # 🔍 Chuẩn bị dữ liệu
     notes = design_data.get("notes", [])
-    # Cho phép liệt kê với gợi tả nhẹ
     notes_text = "".join(notes) + "." if notes else "(Không có ghi chú bổ sung)"
-    print(notes_text)
-
     design_json = dumps({k: v for k, v in design_data.items() if k != "notes"}, ensure_ascii=False, indent=2)
 
+    # 🔁 Lấy feedback mới nhất nếu có
+    last_feedback = get_last_feedback(session_id)
+    feedback_text = f"\n\nLưu ý đặc biệt từ các lần đánh giá trước:\n- {last_feedback}" if last_feedback else ""
+
+    # 🧠 Prompt
     prompt = f"""
-Bạn là một chuyên gia sáng tạo hàng đầu trong lĩnh vực thiết kế thương hiệu (branding design), phát triển hệ thống nhận diện, và xây dựng hình ảnh thương hiệu cho doanh nghiệp ở nhiều ngành khác nhau. Bạn có khả năng nắm bắt nhanh bản chất thương hiệu và thể hiện nó bằng ngôn ngữ thiết kế truyền cảm hứng, sắc sảo và định hướng thị trường
+Bạn là một chuyên gia sáng tạo hàng đầu trong lĩnh vực thiết kế thương hiệu (branding design), phát triển hệ thống nhận diện, và xây dựng hình ảnh thương hiệu cho doanh nghiệp ở nhiều ngành khác nhau. Bạn có khả năng nắm bắt nhanh bản chất thương hiệu và thể hiện nó bằng ngôn ngữ thiết kế truyền cảm hứng, sắc sảo và định hướng thị trường.
 
 Mục tiêu:
 Sinh ra {num_concepts} concept thiết kế thương hiệu khác biệt, dựa hoàn toàn vào thông tin trong `design_json` và `notes_text`. Mỗi concept phản ánh một hướng thẩm mỹ hoặc chiến lược riêng biệt.
@@ -58,6 +59,7 @@ Yêu cầu đầu ra:
 - Không được suy đoán nếu thông tin thiếu
 - Phải tận dụng tối đa mọi dữ liệu có trong design_json
 - Không giới thiệu, không phân tích, chỉ in ra danh sách như mẫu dưới đây
+- Có thể dùng feedback sau để tham khảo thêm về phong cách nói: {feedback_text}
 
 ---
 
@@ -77,7 +79,6 @@ design_json:
 
 notes_text:
 {notes_text}
-
 """
 
     response = ask_gpt([{"role": "user", "content": prompt}], temperature=0.8)

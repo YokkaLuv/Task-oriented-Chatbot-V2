@@ -1,23 +1,17 @@
-from services.db_service import get_session, append_evaluation_feedback
+from services.db_service import append_evaluation_feedback, get_chatlog
 from services.openai_service import ask_gpt
 
 def evaluate_reply(session_id: str):
     """
     Đọc 1-2 message cuối trong chatlog, đánh giá chất lượng phản hồi của bot.
     """
-    session = get_session(session_id)
-    if not session:
-        print("[Eval] ❌ Không tìm thấy session.")
-        return
-
-    chatlog = session.get("chatlogs", [])
+    chatlog = get_chatlog(session_id)
     if len(chatlog) < 2:
         print("[Eval] ⚠️ Chưa đủ dữ liệu để đánh giá.")
         return
 
     # Lấy 1 user + 1 assistant cuối cùng
     last_pairs = [msg for msg in chatlog if msg["role"] in ("user", "assistant")][-2:]
-
     if len(last_pairs) < 2:
         return
 
@@ -28,19 +22,13 @@ Dưới đây là đoạn hội thoại gần nhất giữa người dùng và c
 User: "{last_pairs[0]['content']}"
 Assistant: "{last_pairs[1]['content']}"
 
-Hãy đánh giá phản hồi của chatbot. Nêu rõ:
-- Phản hồi có đầy đủ thông tin không?
-- Có thiếu ghi chú hoặc dữ liệu nào không?
-- Giọng văn và trình bày có phù hợp không?
-- Gợi ý cải thiện (nếu có)
+Hãy đánh giá chất lượng phản hồi của chatbot dựa trên cách diễn đạt. Nếu có vấn đề, hãy chỉ rõ. Nếu tốt, hãy nêu lý do. Đưa ra nhận xét và gợi ý cải thiện nếu cần.
 
 Trả kết quả dưới dạng JSON:
 {{
-  "score": số từ 1-10,
-  "issues": [danh sách các điểm yếu nếu có],
-  "suggestion": "Câu gợi ý cải thiện prompt hoặc hướng dẫn sinh phản hồi tốt hơn."
+  "feedback": "Một đoạn đánh giá ngắn gọn, rõ ràng, bao gồm cả điểm mạnh – điểm yếu – gợi ý cải thiện (nếu có), viết thành văn liền mạch."
 }}
-"""
+""".strip()
 
     result = ask_gpt([{"role": "user", "content": prompt}], temperature=0.3)
 

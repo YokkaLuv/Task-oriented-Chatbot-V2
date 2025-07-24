@@ -82,14 +82,14 @@ Ví dụ:
 - error: Chưa đủ dữ liệu để tạo concept. Thiếu: color, style → Tôi rất tiếc nhưng tôi không thể tạo ý tưởng vì vẫn còn thiếu những thông tin quan trọng như ...
 - error: Không thể tạo ảnh vì thiếu thông tin: color, style → Tôi rất tiếc nhưng tôi không thể tạo demo vì vẫn còn thiếu những thông tin quan trọng như ...
 
-+ Nếu không có gì đáng chú ý trong cả 3 phần trên:
++ Nếu không có thông tin gì trong cả 3 phần trên:
 
 Xác nhận rằng thông tin đã được ghi nhận
 
 Mời người dùng tiếp tục cung cấp thông tin nếu còn nhu cầu
 
 Yêu cầu bắt buộc:
-Chỉ trả lại một đoạn văn duy nhất, viết trôi chảy như người thật đang phản hồi
+Viết trôi chảy như người thật đang phản hồi
 
 Không phân tích cấu trúc dữ liệu, không giải thích cách xử lý
 
@@ -98,7 +98,7 @@ Văn phong phải thân thiện, tự nhiên, chuyên nghiệp, không rập khu
 Không liệt kê dưới dạng danh sách, hãy viết trọn vẹn trong đoạn văn
 
 Đầu vào: {input_json}
-Bây giờ, hãy tạo ra phản hồi tương ứng. Không chú thích thêm. Không giải thích logic xử lý. Chỉ trả lại đúng một đoạn văn duy nhất.
+Bây giờ, hãy tạo ra phản hồi tương ứng. Không chú thích thêm. Không giải thích logic xử lý.
 """
 
     reply = ask_gpt([{"role": "user", "content": prompt}], temperature=0.5).strip()

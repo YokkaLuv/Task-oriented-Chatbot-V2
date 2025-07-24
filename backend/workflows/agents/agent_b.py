@@ -16,13 +16,15 @@ def extract_and_store_info(phrase: str, session_id: str):
     prompt = f"""
 Bạn là chuyên gia trích xuất thông tin thiết về ngữ nghĩa của tiếng Việt hoạt động trong một hệ thống chatbot đa tác vụ, nhiệm vụ của bạn là trích xuất các thông tin thiết kế sản phẩm từ câu tiếng Việt và trả về kết quả dưới dạng JSON
 
-Trích xuất càng đầy đủ càng tốt các trường sau (nếu có):
+Hãy đọc hiểu câu và trích xuất càng đầy đủ càng tốt các trường sau (nếu có):
 
-product, color, style, company, notes
+product, color, style, company
 
+Được phép suy diễn nhẹ nếu câu quá mơ hồ
 Nếu thông tin không thuộc các trường trên, hãy cho vào trường "notes".
 
 Chỉ trả về JSON object duy nhất
+
 Ví dụ 1: 
 Đầu vào: Tôi muốn thiết kế 1 cái áo thun màu có phong cách trẻ trung
 Đầu ra:

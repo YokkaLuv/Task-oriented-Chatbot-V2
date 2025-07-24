@@ -10,11 +10,12 @@ from services.eval_service import evaluate_reply
 def handle_user_message(message: str, session_id: str) -> dict:
     """
     Agent Router: entry point của hệ thống
+    - Ghi log tin nhắn người dùng
     - Gọi Agent A để tách message thành fragments
-    - Gửi fragments sang intent parser → action list
-    - Sắp xếp theo priority rồi dispatch từng action
-    - Nhận kết quả từ Agent F để trả về frontend
-    - Ghi lại hội thoại vào chatlog
+    - Gán intent và sắp xếp theo priority
+    - Dispatch các intent đến các agent chuyên trách
+    - Tổng hợp phản hồi từ Agent F
+    - Ghi log phản hồi và đánh giá chất lượng
     """
 
     try:
@@ -55,19 +56,18 @@ def handle_user_message(message: str, session_id: str) -> dict:
         # B5: Agent F – Tổng hợp phản hồi cuối cùng
         final_response = summarize_response(dispatch_results)
 
-        # B6: Ghi lại phản hồi vào chatlog
+        # B6: Ghi lại phản hồi vào chatlog và evaluate
         reply_text = final_response.get("reply", "")
         if reply_text:
             append_chatlog(session_id, {"role": "assistant", "content": reply_text})
             evaluate_reply(session_id)
 
+        # B7: Trả kết quả hợp lệ về frontend
         if not isinstance(final_response, dict):
             print("[Agent Router] ⚠️ Agent F không trả về dict.")
-            return {
-                "reply": "Xin lỗi, hiện tại tôi không thể phản hồi yêu cầu này.",
-                "concepts": None,
-                "image_url": None
-            }
+            fallback = "Xin lỗi, hiện tại tôi không thể phản hồi yêu cầu này."
+            append_chatlog(session_id, {"role": "assistant", "content": fallback})
+            return {"reply": fallback, "concepts": None, "image_url": None}
 
         return final_response
 
@@ -75,8 +75,4 @@ def handle_user_message(message: str, session_id: str) -> dict:
         print("[Agent Router Error]", e)
         reply = "Hệ thống gặp lỗi khi xử lý yêu cầu. Vui lòng thử lại sau."
         append_chatlog(session_id, {"role": "assistant", "content": reply})
-        return {
-            "reply": reply,
-            "concepts": None,
-            "image_url": None
-        }
+        return {"reply": reply, "concepts": None, "image_url": None}

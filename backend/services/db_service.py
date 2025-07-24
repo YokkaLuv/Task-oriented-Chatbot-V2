@@ -225,3 +225,11 @@ def append_evaluation_feedback(session_id: str, feedback: str):
         {"_id": session_id},
         {"$push": {"evaluation_feedback": feedback}}
     )
+
+def get_last_feedback(session_id: str) -> str | None:
+    session = get_session(session_id)
+    if not session:
+        return None
+
+    feedbacks = session.get("evaluation_feedback", [])
+    return feedbacks[-1] if feedbacks else None
