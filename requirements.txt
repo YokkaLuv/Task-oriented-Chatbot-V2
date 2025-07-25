@@ -1,14 +1,16 @@
-# --- Core backend ---
+# Core
 fastapi[standard]
 uvicorn
-
-# --- OpenAI & LLM ---
-openai
-tiktoken
+pymongo
 python-dotenv
 
-# --- LangGraph & LangChain ---
-langgraph
-langchain
+# LLM
+openai
+tiktoken
 
-pymongo
+# RAG
+langchain
+langchain_community
+
+#Extra
+tqdm
