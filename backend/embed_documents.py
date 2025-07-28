@@ -54,7 +54,7 @@ def process_file(filepath: str):
         VECTOR_COLLECTION.insert_one(doc)
 
 # --- Chạy toàn bộ thư mục ---
-def embed_all_documents(root_dir="rag_sources"):
+def embed_all_documents(root_dir="rag"):
     print(f"[Start] Đọc tài liệu từ thư mục: {root_dir}")
 
     files = glob.glob(os.path.join(root_dir, "**", "*.txt"), recursive=True)

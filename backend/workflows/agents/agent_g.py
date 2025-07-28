@@ -19,7 +19,7 @@ def generate_dalle_prompt(concept: str | None = None, session_id: str = "") -> s
             notes = design_data.get("notes", [])
 
     json_part = dumps({k: v for k, v in design_data.items() if k != "notes"}, ensure_ascii=False, indent=2)
-    notes_text = "- " + "\n- ".join(notes) if notes else "(Không có ghi chú bổ sung)"
+    notes_text = "".join(notes) if notes else "(Không có ghi chú bổ sung)"
 
     # ✅ Prompt template sẽ khác nhau tùy theo việc có concept hay không
     if concept:
@@ -68,39 +68,42 @@ Chỉ dẫn nghiêm ngặt cho LLM:
 """
     else:
         prompt = f"""
-Bạn là một hệ thống con trong chuỗi xử lý AI của chatbot thiết kế thương hiệu. Trong trường hợp người dùng chưa chọn concept cụ thể, hệ thống cần sinh một prompt tiếng Anh gửi đến DALL·E để tạo ra ảnh minh họa sản phẩm thực tế, sát với đời thật. 
+C – Context | Bối cảnh
+Bạn là một hệ thống con trong chuỗi xử lý của chatbot AI hỗ trợ thiết kế thương hiệu. Người dùng chưa lựa chọn một concept cụ thể. Nhiệm vụ hiện tại của bạn là tạo một prompt bằng tiếng Anh để gửi đến DALL·E, nhằm tạo hình ảnh mô phỏng thực tế phù hợp với thông tin đầu vào.
 
 Dữ liệu đầu vào bao gồm:
-- `design_data`: thông tin kỹ thuật chuẩn hóa (màu sắc, chất liệu, phong cách, bố cục, loại sản phẩm, v.v.), định dạng JSON.
-- `notes_text`: ghi chú bổ sung từ người dùng, giúp làm rõ hoặc nhấn mạnh một số đặc điểm thị giác quan trọng (nếu có).
+- `design_data`: dữ liệu kỹ thuật như màu sắc, chất liệu, hình dạng, bố cục (dạng JSON)
+- `notes_text`: các ghi chú bổ sung từ người dùng (nếu có)
 
-Bạn là chuyên gia tạo prompt sinh ảnh thực tế (photo-realistic prompt engineer) cho các hệ thống như DALL·E. Bạn có khả năng:
-- Dịch dữ liệu kỹ thuật thành mô tả hình ảnh chi tiết, chính xác và trực quan
-- Mô tả bố cục, chất liệu, ánh sáng và phối cảnh như đang chỉ đạo một buổi chụp sản phẩm thật
-- Không sáng tạo hay thêm thông tin không có trong dữ liệu
+R – Role | Vai trò
+Bạn là chuyên gia trong việc tạo prompt sinh ảnh thực tế (photorealistic image generation) cho DALL·E. Bạn sử dụng ngôn ngữ mô tả cụ thể, chính xác, và chi tiết như một đạo diễn sản phẩm hoặc kỹ sư mô phỏng 3D. Bạn không sáng tạo thêm ngoài thông tin được cung cấp.
 
-- Phân tích toàn bộ `design_data` để xác định loại sản phẩm, chất liệu, màu sắc, phong cách, kích thước, bố cục,...
-- Nếu có `notes_text`, lồng ghép các chi tiết quan trọng từ phần này vào mô tả, một cách tự nhiên và hợp ngữ cảnh
-- Viết lại thành một dòng mô tả bằng tiếng Anh, định hướng cho DALL·E tạo ảnh có tính chất:
-  - Giống như ảnh chụp thật hoặc render 3D chuyên nghiệp
-  - Ánh sáng tự nhiên, mô tả chất liệu rõ ràng, sắc nét
-  - Không có yếu tố trừu tượng, hoạt hình, fantasy
+A – Action | Hành động
+- Phân tích kỹ các dữ liệu đi kèm.
+- Chuyển toàn bộ thông tin thành mô tả hình ảnh tiếng Anh ngắn gọn, chi tiết, với phong cách giống như đang mô phỏng sản phẩm thật.
+- Mô tả phải bao gồm các yếu tố: bố cục sản phẩm, chất liệu, phối cảnh, nền (background), ánh sáng, góc nhìn, và không khí tổng thể.
+- Ưu tiên mô tả ánh sáng thật (realistic lighting), độ nét cao (ultra-sharp), màu sắc chính xác, kết cấu vật liệu cụ thể (textures), background rõ nét.
+- Không thêm suy luận hoặc đặc điểm không được cung cấp.
 
-- Chỉ in ra **một dòng duy nhất**: prompt tiếng Anh
-- Không markdown, không mở đầu, không giải thích
-- Mô tả mạch lạc, hình dung được bố cục rõ ràng như ảnh studio sản phẩm
+F – Format | Định dạng
+- In ra duy nhất một dòng prompt tiếng Anh.
+- Không dùng markdown, không xuống dòng, không giải thích, không viết hoa ngẫu nhiên.
 
-Prompt này sẽ được hệ thống gọi API DALL·E để sinh ảnh mô phỏng sản phẩm thiết kế thương hiệu. Khách hàng sử dụng thường là nhà sáng lập startup, marketer, hoặc nhóm sáng tạo muốn có hình ảnh xem trước sản phẩm.
+T – Target Audience | Đối tượng sử dụng
+Đầu ra sẽ được đưa vào API DALL·E để sinh ảnh minh họa sản phẩm thực tế phục vụ thiết kế thương hiệu, trình diễn ý tưởng cho khách hàng hoặc thuyết phục nhà đầu tư.
 
 Input:
-Thông tin thiết kế (JSON):  
+
+Thông tin kỹ thuật (JSON):
 {json_part}
 
-Ghi chú bổ sung (nếu có):  
+Ghi chú bổ sung:
 {notes_text}
 
-- Chỉ xuất một dòng prompt tiếng Anh để mô tả ảnh thực tế
-- Không phân tích, không mở đầu, không markdown, không sinh ảnh
+Chỉ dẫn nghiêm ngặt cho LLM:
+- Viết prompt tiếng Anh duy nhất, mô tả hình ảnh thực tế.
+- Không thêm tiêu đề, không mô tả thêm, không sinh ảnh.
+- Giữ văn phong chính xác, logic, không tưởng tượng.
 """
 
     result = ask_gpt([{"role": "user", "content": prompt}], temperature=0.7)

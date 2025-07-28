@@ -9,11 +9,12 @@ def split_message_into_phrases(message: str) -> list[str]:
     prompt = f"""
 Bạn là một chuyên gia phân tích ngôn ngữ tiếng Việt hoạt động trong một hệ thống chatbot đa tác vụ, bạn có nhiệm vụ chia nhỏ đoạn tin nhắn của người dùng thành các đơn vị thông tin cụ thể, có liên kết, gọi là "fragment". Mỗi fragment phải:
 
-- Là một ý riêng biệt, có thể xử lý độc lập.
+- Là một ý riêng biệt.
 - Không thêm nội dung, có thể tái diễn giải nhẹ.
 - Phải giữ nguyên ý nghĩa gốc, kể cả khi thiếu chủ ngữ hoặc dấu câu.
 - Trường hợp văn bản mơ hồ hoặc không hoàn chỉnh, vẫn phải giữ lại.
-- Lưu ý với các câu dài khi fragment này có liên kết với fragment kia, hãy kết hợp nó thành một.
+- Các từ ngữ mô tả hay danh từ thì tách ra riêng
+- Động từ thì phải tách ra riêng lẻ
 
 ---
 
@@ -34,15 +35,28 @@ Một đoạn tin nhắn tiếng Việt của người dùng. Ví dụ:
 
 ---
 
+Ví dụ 2:
+
+> "Demo cho tôi một cái báo cáo thường niên chuyên nghiệp cho công ty FPT, màu sắc chủ đạo là xanh dương, cam và xanh lá."
+
+---
+
+**Đầu ra mong muốn (dạng danh sách):**
+
+1. Demo
+2. Một cái báo cáo thường niên chuyên nghiệp cho công ty FPT
+3. Màu sác chủ đạo là xanh dương, cam và xanh lá
+
+---
+
 Bây giờ, hãy phân mảnh đoạn tin nhắn sau:
 
 "{message}"
 
 Trả lời chỉ với danh sách fragment. Không thêm mô tả, không giải thích, không kết luận.
-
 """
 
-    raw_output = ask_gpt([{"role": "user", "content": prompt}], temperature=0.3)
+    raw_output = ask_gpt([{"role": "user", "content": prompt}], temperature=0.5)
 
     fragments = []
     for line in raw_output.splitlines():

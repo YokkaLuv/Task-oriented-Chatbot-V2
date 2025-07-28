@@ -12,6 +12,7 @@ def analyze_phrases(phrases: list[str], session_id: str = "") -> list[dict]:
     prompt = f"""
 Bạn là một hệ thống chuyên gia phân tích ý định người dùng.
 Dưới đây là danh sách các mệnh đề. Hãy gán cho mỗi mệnh đề một intent duy nhất.
+Cố gắng phân tích ý định ở cả những câu đơn giản nữa.
 
 Trả về kết quả dưới dạng JSON array theo cấu trúc:
 [
@@ -33,6 +34,7 @@ Lưu ý:
 - Nếu người dùng mô tả sản phẩm (tên sản phẩm, màu sắc, chất liệu, đối tượng, mục đích...) → intent là "provide_info"
 - Nếu người dùng muốn xóa mô tả → intent là "remove_info"
 - Nếu người dùng yêu cầu bạn đề xuất ý tưởng thiết kế → intent là "request_concept"
+- Những câu đơn giản có thể như sau: "Demo" → intent là "generate_demo" , "Tạo concept" → intent là "request_concept"
 
 Chỉ trả kết quả JSON hợp lệ, không được giải thích gì thêm.
 
