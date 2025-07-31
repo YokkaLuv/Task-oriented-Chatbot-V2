@@ -1,5 +1,4 @@
-# rag_service.py
-from services.db_service import db
+from services.db_service import db, get_design_data_for_session
 from services.openai_service import client as openai_client
 
 # --- Cấu hình ---
@@ -19,6 +18,25 @@ def get_query_embedding(text: str) -> list[float]:
         print(f"[Embedding Error] {e}")
         return []
 
+
+# --- Tạo đoạn mô tả từ dữ liệu thiết kế trong session ---
+def build_design_context(session_id: str) -> str:
+    """
+    Chuyển dữ liệu thiết kế từ session thành chuỗi mô tả để dùng làm context truy vấn.
+    """
+    data = get_design_data_for_session(session_id)
+    if not data:
+        return ""
+
+    context_lines = []
+    for key, value in data.items():
+        if isinstance(value, list) and value:
+            context_lines.append(f"{key}: {', '.join(value)}")
+        elif isinstance(value, str) and value.strip():
+            context_lines.append(f"{key}: {value.strip()}")
+
+    return "Thông tin thiết kế hiện tại:\n" + "\n".join(context_lines)
+
 # --- Truy vấn vector search từ MongoDB ---
 def query_knowledge_base(query: str, k: int = 5) -> list[str]:
     embedding = get_query_embedding(query)
@@ -28,7 +46,7 @@ def query_knowledge_base(query: str, k: int = 5) -> list[str]:
     pipeline = [
         {
             "$vectorSearch": {
-                "index": "vector_index",  # Đúng tên index bạn đã đặt trong MongoDB
+                "index": "vector_index",
                 "path": "embedding",
                 "queryVector": embedding,
                 "numCandidates": 50,
@@ -49,8 +67,19 @@ def query_knowledge_base(query: str, k: int = 5) -> list[str]:
     results = VECTOR_COLLECTION.aggregate(pipeline)
     return [doc["content"] for doc in results]
 
-def get_context_from_knowledge(query: str, k: int = 5) -> str:
-    docs = query_knowledge_base(query, k)
+
+# --- Hàm chính: Lấy context cho RAG dựa vào session + truy vấn ---
+def get_context_from_knowledge(query: str, session_id: str, k: int = 5) -> str:
+    """
+    Trả về nội dung tri thức liên quan dựa vào:
+    - thông tin thiết kế trong session
+    - truy vấn từ người dùng
+    """
+    design_context = build_design_context(session_id)
+    full_query = f"{design_context}\n\nYêu cầu người dùng: {query}".strip()
+
+    docs = query_knowledge_base(full_query, k)
     if not docs:
         return "[Không tìm thấy thông tin phù hợp trong kho tri thức]"
+
     return "\n---\n".join(docs)

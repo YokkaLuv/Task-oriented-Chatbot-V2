@@ -1,17 +1,17 @@
 import os
 import glob
 from tqdm import tqdm
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter
 from services.db_service import db
 from services.openai_service import client as openai_client
 
 # --- Cấu hình ---
 VECTOR_COLLECTION = db["knowledge_base"]
 
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=400,
-    chunk_overlap=50,
-    separators=["\n\n", "\n", ".", " ", ""]
+splitter = CharacterTextSplitter(
+    chunk_size=4000,
+    chunk_overlap=800,
+    separator="\n\n",
 )
 
 # --- Hàm tạo embedding ---
@@ -55,6 +55,7 @@ def process_file(filepath: str):
 
 # --- Chạy toàn bộ thư mục ---
 def embed_all_documents(root_dir="rag"):
+    VECTOR_COLLECTION.delete_many({})
     print(f"[Start] Đọc tài liệu từ thư mục: {root_dir}")
 
     files = glob.glob(os.path.join(root_dir, "**", "*.txt"), recursive=True)
