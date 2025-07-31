@@ -8,7 +8,7 @@ from workflows.agents import (
 )
 from services.db_service import store_selected_concept, get_session
 
-def dispatch_actions(actions: list[dict], session_id: str) -> list[dict]:
+def dispatch_actions(actions: list[dict], session_id: str, message: str = None) -> list[dict]:
     """
     Xử lý danh sách các hành động đã được gán intent và sắp xếp theo độ ưu tiên.
     Gọi đúng agent xử lý cho từng intent.
@@ -31,7 +31,7 @@ def dispatch_actions(actions: list[dict], session_id: str) -> list[dict]:
                     results.append(result_b)
 
             case Intent.REQUEST_CONCEPT:
-                result_d = agent_d.generate_concepts(session_id)
+                result_d = agent_d.generate_concepts(session_id, 5, message)
                 if result_d is not None:
                     results.append(result_d)
 
@@ -50,7 +50,7 @@ def dispatch_actions(actions: list[dict], session_id: str) -> list[dict]:
                     print(f"[Dispatcher] ⚠️ Không xác định được concept từ: '{phrase}'")
 
             case Intent.GENERATE_DEMO:
-                result_e = agent_e.generate_image_from_selected_concept(session_id)
+                result_e = agent_e.generate_image_from_selected_concept(session_id, message)
                 if result_e is not None:
                     results.append(result_e)
 

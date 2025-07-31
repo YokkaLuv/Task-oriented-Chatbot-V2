@@ -3,7 +3,7 @@ from services.openai_service import generate_image
 from workflows.agents import agent_g
 from schemas.design_schema import DEFAULT_DESIGN_DATA
 
-def generate_image_from_selected_concept(session_id: str, resolution: str = "1024x1024") -> dict:
+def generate_image_from_selected_concept(session_id: str, message: str = None) -> dict:
     """
     Agent E: Sinh ảnh minh hoạ từ concept đã chọn hoặc chỉ từ dữ liệu thiết kế.
     Kiểm tra xem thiết kế có đủ thông tin chưa trước khi tạo prompt.
@@ -16,6 +16,7 @@ def generate_image_from_selected_concept(session_id: str, resolution: str = "102
 
     design_data = session.get("design_data", {})
     concept = session.get("selected_concept", None)
+    resolution: str = "1024x1024"
 
     # ✅ Kiểm tra thiếu thông tin (trừ notes)
     missing_fields = [
@@ -31,7 +32,7 @@ def generate_image_from_selected_concept(session_id: str, resolution: str = "102
 
     # ✅ Dù có concept hay không, vẫn tạo prompt từ dữ liệu + concept nếu có
     try:
-        dalle_prompt = agent_g.generate_dalle_prompt(concept=concept or "", session_id=session_id)
+        dalle_prompt = agent_g.generate_dalle_prompt(concept=concept or "", session_id=session_id, message=message)
         print(f"[Agent E] 🎯 Prompt gửi tới DALL·E:\n{dalle_prompt}\n")
 
         url = generate_image(prompt=dalle_prompt, size=resolution)

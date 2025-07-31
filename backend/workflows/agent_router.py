@@ -50,7 +50,7 @@ def handle_user_message(message: str, session_id: str) -> dict:
         list_action.sort(key=lambda a: get_intent_priority(a["intent"]))
 
         # B4: Dispatch → agent B/C/D/E xử lý từng intent
-        dispatch_results = dispatch_actions(list_action, session_id)
+        dispatch_results = dispatch_actions(list_action, session_id, message)
         print("[Debug] dispatch_results:", dispatch_results)
 
         # B5: Agent F – Tổng hợp phản hồi cuối cùng

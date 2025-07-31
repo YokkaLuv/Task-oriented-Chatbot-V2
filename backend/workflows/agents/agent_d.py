@@ -3,8 +3,9 @@ from services.db_service import get_session, store_concepts, get_last_feedback
 from schemas.design_schema import DEFAULT_DESIGN_DATA
 import re
 from json import dumps
+from services.rag_service import get_context_from_session
 
-def generate_concepts(session_id: str, num_concepts: int = 5) -> dict:
+def generate_concepts(session_id: str, num_concepts: int = 5, message: str = None) -> dict:
     """
     Agent D: Sinh từ 3–5 concept thiết kế từ thông tin đã thu thập.
     Lưu vào DB và trả về dict {"concepts": [...]} nếu thành công.
@@ -19,6 +20,10 @@ def generate_concepts(session_id: str, num_concepts: int = 5) -> dict:
     if not design_data:
         print(f"[Agent D] ⚠️ Không có thông tin thiết kế để sinh concept.")
         return {}
+    context_from_kb = ""
+    if message:
+        context_from_kb = get_context_from_session(session_id, message)
+        print(f"context_from_kb là {context_from_kb}")
 
     # ✅ Kiểm tra thiếu field (trừ 'notes')
     missing = [
@@ -50,16 +55,17 @@ Sinh ra {num_concepts} concept thiết kế thương hiệu khác biệt, dựa 
 Input:
 - `design_json`: dữ liệu đầu vào chuẩn hóa (tên sản phẩm, màu sắc, style,...)
 - `notes_text`: ghi chú của người dùng nếu có
-
+- `context_from_kb`: dữ liệu tham khảo từ công ty mẹ của bạn
 ---
 
 Yêu cầu đầu ra:
 - Viết 3 đến {num_concepts} concept
-- Mỗi concept là một đoạn văn ngắn gọn, sắc sảo, chi tiết và viết đầy đủ thông tin đầu vào, nếu có `notes_text`, hãy viết lại cho đẹp và ghép đầy đủ nội dung vào cuối mỗi concept
+- Mỗi concept là một đoạn văn sắc sảo, chi tiết và viết đầy đủ thông tin đầu vào, nếu có `notes_text`, hãy viết lại cho đẹp và ghép đầy đủ nội dung vào cuối mỗi concept
 - Không được suy đoán nếu thông tin thiếu
+- Có thể tham khảo theo 'context_from_kb' để sáng tạo theo 
 - Phải tận dụng tối đa mọi dữ liệu có trong design_json
-- Không giới thiệu, không phân tích, chỉ in ra danh sách như mẫu dưới đây
 - Có thể dùng feedback sau để tham khảo thêm về phong cách nói: {feedback_text}
+- Không giới thiệu, không phân tích, chỉ in ra danh sách như mẫu dưới đây
 
 ---
 
@@ -79,9 +85,12 @@ design_json:
 
 notes_text:
 {notes_text}
+
+context_from_kb:
+{context_from_kb}
 """
 
-    response = ask_gpt([{"role": "user", "content": prompt}], temperature=0.8)
+    response = ask_gpt([{"role": "user", "content": prompt}], temperature=0.9)
 
     # Parse output thành danh sách concept theo đánh số
     raw_lines = response.strip().splitlines()

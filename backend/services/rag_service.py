@@ -1,85 +1,66 @@
-from services.db_service import db, get_design_data_for_session
+# rag_service.py
+from services.db_service import get_session, db
 from services.openai_service import client as openai_client
 
-# --- Cấu hình ---
 VECTOR_COLLECTION = db["knowledge_base"]
 EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_DIM = 1536
 
-# --- Tạo embedding cho truy vấn ---
 def get_query_embedding(text: str) -> list[float]:
     try:
-        response = openai_client.embeddings.create(
-            model=EMBEDDING_MODEL,
-            input=text
-        )
-        return response.data[0].embedding
+        resp = openai_client.embeddings.create(model=EMBEDDING_MODEL, input=text)
+        return resp.data[0].embedding
     except Exception as e:
         print(f"[Embedding Error] {e}")
         return []
 
-
-# --- Tạo đoạn mô tả từ dữ liệu thiết kế trong session ---
-def build_design_context(session_id: str) -> str:
-    """
-    Chuyển dữ liệu thiết kế từ session thành chuỗi mô tả để dùng làm context truy vấn.
-    """
-    data = get_design_data_for_session(session_id)
-    if not data:
-        return ""
-
-    context_lines = []
-    for key, value in data.items():
-        if isinstance(value, list) and value:
-            context_lines.append(f"{key}: {', '.join(value)}")
-        elif isinstance(value, str) and value.strip():
-            context_lines.append(f"{key}: {value.strip()}")
-
-    return "Thông tin thiết kế hiện tại:\n" + "\n".join(context_lines)
-
-# --- Truy vấn vector search từ MongoDB ---
-def query_knowledge_base(query: str, k: int = 5) -> list[str]:
-    embedding = get_query_embedding(query)
-    if not embedding:
+def query_knowledge_base(query_vec: list[float], k: int = 5) -> list[str]:
+    if not query_vec:
         return []
-
     pipeline = [
         {
             "$vectorSearch": {
                 "index": "vector_index",
                 "path": "embedding",
-                "queryVector": embedding,
-                "numCandidates": 50,
+                "queryVector": query_vec,
+                "numCandidates": max(k * 20, 50),
                 "limit": k,
                 "similarity": "cosine"
             }
         },
         {
             "$project": {
-                "_id": 0,
                 "content": 1,
                 "source": 1,
-                "score": {"$meta": "vectorSearchScore"}
+                "score": {"$meta": "vectorSearchScore"},
+                "_id": 0
             }
         }
     ]
+    return [doc["content"] for doc in VECTOR_COLLECTION.aggregate(pipeline)]
 
-    results = VECTOR_COLLECTION.aggregate(pipeline)
-    return [doc["content"] for doc in results]
+def build_query_text_from_session(session_id: str, latest_user_message: str) -> str:
+    session = get_session(session_id)
+    design = session.get("design_data", {}) if session else {}
+    info = []
+    for key, val in design.items():
+        if isinstance(val, list) and val:
+            info.append(f"{key}: {', '.join(val)}")
+        elif isinstance(val, str) and val.strip():
+            info.append(f"{key}: {val.strip()}")
+    design_ctx = "\n".join(info)
+    outer = "Thông tin đã biết:\n" + design_ctx + "\n\n" if design_ctx else ""
+    if latest_user_message:
+        outer += f"Yêu cầu người dùng: {latest_user_message.strip()}"
+    return outer or latest_user_message.strip()
 
-
-# --- Hàm chính: Lấy context cho RAG dựa vào session + truy vấn ---
-def get_context_from_knowledge(query: str, session_id: str, k: int = 5) -> str:
-    """
-    Trả về nội dung tri thức liên quan dựa vào:
-    - thông tin thiết kế trong session
-    - truy vấn từ người dùng
-    """
-    design_context = build_design_context(session_id)
-    full_query = f"{design_context}\n\nYêu cầu người dùng: {query}".strip()
-
-    docs = query_knowledge_base(full_query, k)
+def get_context_from_session(session_id: str, latest_user_message: str, k: int = 5) -> str:
+    query_text = build_query_text_from_session(session_id, latest_user_message)
+    if not query_text:
+        return ""
+    embedding = get_query_embedding(query_text)
+    docs = query_knowledge_base(embedding, k)
+    print(f"[rag_service] Query text:\n{query_text}\n=> Retrieved docs count: {len(docs)}")
     if not docs:
         return "[Không tìm thấy thông tin phù hợp trong kho tri thức]"
-
     return "\n---\n".join(docs)
