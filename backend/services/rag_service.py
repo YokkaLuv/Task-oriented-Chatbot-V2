@@ -14,7 +14,7 @@ def get_query_embedding(text: str) -> list[float]:
         print(f"[Embedding Error] {e}")
         return []
 
-def query_knowledge_base(query_vec: list[float], k: int = 5) -> list[str]:
+def query_knowledge_base(query_vec: list[float], k: int = 2) -> list[str]:
     if not query_vec:
         return []
     pipeline = [

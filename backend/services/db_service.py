@@ -23,7 +23,6 @@ def init_session(session_id: str):
                 "concepts": [],
                 "selected_concept": None,
                 "image_url": None,
-                "history": []
             }
         },
         upsert=True
