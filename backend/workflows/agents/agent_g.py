@@ -51,6 +51,7 @@ A – Action | Hành động
 F – Format | Định dạng
 - In ra duy nhất một dòng prompt tiếng Anh.
 - Không dùng markdown, không xuống dòng, không giải thích, không viết hoa ngẫu nhiên.
+- Nhớ đưa các thông tin đầu vào vào lồng ghép hợp lí
 
 T – Target Audience | Đối tượng sử dụng
 Đầu ra sẽ được đưa vào API DALL·E để sinh ảnh minh họa sản phẩm thực tế phục vụ thiết kế thương hiệu, trình diễn ý tưởng cho khách hàng hoặc thuyết phục nhà đầu tư.
@@ -98,6 +99,7 @@ A – Action | Hành động
 F – Format | Định dạng
 - In ra duy nhất một dòng prompt tiếng Anh.
 - Không dùng markdown, không xuống dòng, không giải thích, không viết hoa ngẫu nhiên.
+- Nhớ đưa các thông tin đầu vào vào lồng ghép hợp lí
 
 T – Target Audience | Đối tượng sử dụng
 Đầu ra sẽ được đưa vào API DALL·E để sinh ảnh minh họa sản phẩm thực tế phục vụ thiết kế thương hiệu, trình diễn ý tưởng cho khách hàng hoặc thuyết phục nhà đầu tư.

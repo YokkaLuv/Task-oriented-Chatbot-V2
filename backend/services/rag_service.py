@@ -42,19 +42,22 @@ def query_knowledge_base(query_vec: list[float], k: int = 2) -> list[str]:
 def build_query_text_from_session(session_id: str, latest_user_message: str) -> str:
     session = get_session(session_id)
     design = session.get("design_data", {}) if session else {}
+    
+    product_value = design.get("product")
     info = []
-    for key, val in design.items():
-        if isinstance(val, list) and val:
-            info.append(f"{key}: {', '.join(val)}")
-        elif isinstance(val, str) and val.strip():
-            info.append(f"{key}: {val.strip()}")
+    if isinstance(product_value, list) and product_value:
+        info.append(f"product: {', '.join(product_value)}")
+    elif isinstance(product_value, str) and product_value.strip():
+        info.append(f"product: {product_value.strip()}")
+
     design_ctx = "\n".join(info)
     outer = "Thông tin đã biết:\n" + design_ctx + "\n\n" if design_ctx else ""
     if latest_user_message:
         outer += f"Yêu cầu người dùng: {latest_user_message.strip()}"
     return outer or latest_user_message.strip()
 
-def get_context_from_session(session_id: str, latest_user_message: str, k: int = 5) -> str:
+
+def get_context_from_session(session_id: str, latest_user_message: str, k: int = 2) -> str:
     query_text = build_query_text_from_session(session_id, latest_user_message)
     if not query_text:
         return ""
